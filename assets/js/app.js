@@ -3,6 +3,7 @@ import { SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISC
 import { vialArt } from './vial.js';
 import { publishedCount } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
+import { initActivity } from './activity.js';
 
 export { money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone };
 
@@ -225,7 +226,7 @@ function headerHTML(active) {
   </div>
   <header class="site-header">
     <div class="wrap header-row">
-      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">CP</span> ${esc(SITE.name)}</a>
+      <a class="brand" href="index.html"><img class="logo-mark" src="assets/img/logo-mark.svg" alt="" width="34" height="34" /><span class="brand-word"><b>Crypto</b><i>Peptides</i></span></a>
       <nav class="nav" aria-label="Primary">
         <span class="has-mega">
           <button class="navlink" id="mega-btn" aria-expanded="false" aria-controls="mega">Categories ▾</button>
@@ -245,7 +246,7 @@ function headerHTML(active) {
   </header>
   <div class="mobile-nav" id="mobile-nav" hidden>
     <div class="close-row">
-      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">CP</span> ${esc(SITE.name)}</a>
+      <a class="brand" href="index.html"><img class="logo-mark" src="assets/img/logo-mark.svg" alt="" width="34" height="34" /><span class="brand-word"><b>Crypto</b><i>Peptides</i></span></a>
       <button class="icon-btn" id="mobile-close" aria-label="Close menu">✕</button>
     </div>
     ${NAV.map((n) => `<a href="${n.href}">${esc(n.label)}</a>`).join('')}
@@ -266,7 +267,7 @@ function footerHTML() {
     <div class="wrap">
       <div class="footer-grid">
         <div>
-          <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">CP</span> ${esc(SITE.name)}</a>
+          <a class="brand" href="index.html"><img class="logo-mark" src="assets/img/logo-mark.svg" alt="" width="34" height="34" /><span class="brand-word"><b>Crypto</b><i>Peptides</i></span></a>
           <p class="small muted footer-blurb">
             Research-grade peptides for laboratory use. Every lot carries a number printed on the vial and a
             record in our public lot registry${
@@ -432,7 +433,7 @@ function initAgeGate() {
   const scrim = document.createElement('div');
   scrim.className = 'modal-scrim';
   scrim.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="age-h" aria-describedby="age-d">
-    <div class="brand-mark" aria-hidden="true" style="margin:0 auto 14px">CP</div>
+    <img class="logo-mark" src="assets/img/logo-mark.svg" alt="" width="44" height="44" style="width:44px;height:44px;margin:0 auto 14px" />
     <h2 id="age-h">Research use confirmation</h2>
     <p class="small muted" id="age-d">
       Products on this site are supplied strictly for laboratory research. They are not for human or veterinary
@@ -579,4 +580,5 @@ export function initShell() {
   initTheme();
   initAnnouncements();
   initAgeGate();
+  initActivity();
 }

@@ -109,14 +109,14 @@ export const CRYPTO = [
 ];
 
 export const CATEGORIES = [
-  { id: 'glp1', name: 'GLP-1 & Metabolic', blurb: 'Incretin and metabolic research compounds.', accent: '#7c5cff' },
-  { id: 'healing', name: 'Healing & Recovery', blurb: 'Tissue, gut and immune-signalling peptides.', accent: '#22c3a6' },
-  { id: 'gh', name: 'Growth Hormone Secretagogues', blurb: 'GHRH analogues, ghrelin mimetics and fragments.', accent: '#2b9dff' },
-  { id: 'longevity', name: 'Longevity & Mitochondrial', blurb: 'Mitochondrial-derived and geroprotective peptides.', accent: '#f59e0b' },
-  { id: 'vitality', name: 'Aesthetics & Vitality', blurb: 'Melanocortin, skin and vitality research.', accent: '#ec4899' },
-  { id: 'cognitive', name: 'Cognitive & Neuro', blurb: 'Nootropic and neurotrophic research peptides.', accent: '#8b5cf6' },
-  { id: 'blends', name: 'Blends & Stacks', blurb: 'Pre-mixed vials and multi-vial research kits.', accent: '#14b8a6' },
-  { id: 'supplies', name: 'Lab Supplies', blurb: 'Reconstitution and storage consumables.', accent: '#64748b' },
+  { id: 'glp1', name: 'GLP-1 & Metabolic', blurb: 'Incretin and metabolic research compounds.', accent: '#1252e0' },
+  { id: 'healing', name: 'Healing & Recovery', blurb: 'Tissue, gut and immune-signalling peptides.', accent: '#0d9488' },
+  { id: 'gh', name: 'Growth Hormone Secretagogues', blurb: 'GHRH analogues, ghrelin mimetics and fragments.', accent: '#0284c7' },
+  { id: 'longevity', name: 'Longevity & Mitochondrial', blurb: 'Mitochondrial-derived and geroprotective peptides.', accent: '#b45309' },
+  { id: 'vitality', name: 'Aesthetics & Vitality', blurb: 'Melanocortin, skin and vitality research.', accent: '#be185d' },
+  { id: 'cognitive', name: 'Cognitive & Neuro', blurb: 'Nootropic and neurotrophic research peptides.', accent: '#6d28d9' },
+  { id: 'blends', name: 'Blends & Stacks', blurb: 'Pre-mixed vials and multi-vial research kits.', accent: '#0f766e' },
+  { id: 'supplies', name: 'Lab Supplies', blurb: 'Reconstitution and storage consumables.', accent: '#475569' },
 ];
 
 // v(size, msrp) — a purchasable variant. `id` is derived in `normalise()`.

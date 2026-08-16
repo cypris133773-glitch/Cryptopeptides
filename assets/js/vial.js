@@ -240,7 +240,7 @@ export function vialArt(product, size, opts = {}) {
 
   const label = opts.compact
     ? `<span class="vial-stripe"></span>`
-    : `<span class="vial-brand">${esc(SITE.name.toUpperCase())}</span>
+    : `<span class="vial-brand"><b>CRYPTO</b>PEPTIDES</span>
        <span class="vial-name">${esc(name)}</span>
        <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
        <span class="vial-ruo">RESEARCH USE ONLY</span>`;

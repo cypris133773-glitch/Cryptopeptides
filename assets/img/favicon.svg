@@ -1,10 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CryptoPeptides">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6d4aff"/>
-      <stop offset="1" stop-color="#22d3ee"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b63f0"/>
+      <stop offset="1" stop-color="#0a2a7a"/>
+    </linearGradient>
+    <linearGradient id="node" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fc6ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#g)"/>
-  <text x="32" y="42" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="26" font-weight="800" fill="#fff">CP</text>
+  <rect width="64" height="64" rx="15" fill="url(#bg)"/>
+  <path d="M32 8 53 20.5v23L32 56 11 43.5v-23Z" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".35" stroke-linejoin="round"/>
+  <path d="M34 20a12 12 0 1 0 0 24v-6a6 6 0 1 1 0-12Z" fill="#fff"/>
+  <g stroke="#cfe0ff" stroke-width="2" stroke-linecap="round" opacity=".9">
+    <path d="M41 21.5 45.5 28"/><path d="M45.5 28 40.5 34.5"/><path d="M40.5 34.5 45.5 41.5"/>
+  </g>
+  <circle cx="41" cy="21" r="3" fill="url(#node)"/>
+  <circle cx="45.8" cy="28.2" r="2.7" fill="url(#node)"/>
+  <circle cx="40.4" cy="34.6" r="2.9" fill="url(#node)"/>
+  <circle cx="45.8" cy="42" r="3.2" fill="url(#node)"/>
 </svg>

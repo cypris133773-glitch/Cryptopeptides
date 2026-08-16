@@ -2,12 +2,17 @@
    Light theme is the default; the dark palette only redefines tokens. */
 
 :root {
-  --violet: #6d4aff;
-  --violet-600: #5b34f5;
-  /* --cyan is a fill-only colour: white text over it measures 1.8:1, so any
-     gradient that carries text ends at --cyan-ink instead. */
-  --cyan: #22d3ee;
-  --cyan-ink: #0891b2;
+  /* Brand blue and chrome, taken from the logo. --brand carries text on white
+     at 5.3:1; --brand-lit is a fill-only highlight (white on it measures 2.4:1)
+     so any gradient that carries text ends at --brand-deep instead. */
+  --violet: #1252e0;        /* legacy token name, now the brand blue */
+  --violet-600: #0b3bb0;
+  --brand-lit: #4d9bff;
+  --brand-deep: #0a2a7a;
+  --chrome: #8fa0b8;
+  --chrome-dark: #4a5c74;
+  --cyan: var(--brand-lit);
+  --cyan-ink: var(--brand-deep);
   --mint: #22c3a6;
 
   --bg: #ffffff;
@@ -88,6 +93,10 @@
 }
 
 [data-theme='dark'] {
+  --brand-lit: #6cb0ff;
+  --brand-deep: #123a9e;
+  --chrome: #9fb0c9;
+  --chrome-dark: #6b7c96;
   --bg: #0a0e1c;
   --bg-soft: #111830;
   --bg-sunk: #1a2340;
@@ -215,8 +224,8 @@ p, li, .acc-body { max-width: 68ch; }
 .btn-primary, .btn-dark { will-change: transform; }
 .btn-primary:hover, .btn-dark:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
-.btn-primary { background: linear-gradient(100deg, var(--violet), var(--violet-600)); color: #fff; box-shadow: 0 6px 18px rgba(109, 74, 255, .32); }
-.btn-primary:hover { box-shadow: 0 10px 26px rgba(109, 74, 255, .42); }
+.btn-primary { background: linear-gradient(100deg, var(--violet), var(--violet-600)); color: #fff; box-shadow: 0 6px 18px rgba(18, 82, 224, .30); }
+.btn-primary:hover { box-shadow: 0 10px 26px rgba(18, 82, 224, .40); }
 .btn-dark { background: var(--ink); color: var(--bg); }
 [data-theme='dark'] .btn-dark { background: transparent; border-color: var(--line-strong); color: var(--ink); }
 [data-theme='dark'] .btn-dark:hover { border-color: var(--accent); }
@@ -258,7 +267,7 @@ p, li, .acc-body { max-width: 68ch; }
   width: 32px; height: 32px; border-radius: 10px; flex: none;
   background: linear-gradient(135deg, var(--violet), var(--cyan));
   display: grid; place-items: center; color: #fff; font-size: var(--fs-sm); font-weight: 800;
-  box-shadow: 0 4px 14px rgba(109, 74, 255, .35);
+  box-shadow: 0 4px 14px rgba(18, 82, 224, .35);
 }
 .nav { display: flex; align-items: center; gap: 2px; margin-left: var(--sp-2); }
 .nav a, .nav button.navlink {
@@ -334,8 +343,8 @@ p, li, .acc-body { max-width: 68ch; }
 .hero::before {
   content: ''; position: absolute; inset: -30% -10% auto; height: 620px;
   background:
-    radial-gradient(closest-side, rgba(109, 74, 255, .22), transparent 70%) 20% 30%/60% 90% no-repeat,
-    radial-gradient(closest-side, rgba(34, 211, 238, .20), transparent 70%) 82% 10%/55% 80% no-repeat;
+    radial-gradient(closest-side, rgba(18, 82, 224, .22), transparent 70%) 20% 30%/60% 90% no-repeat,
+    radial-gradient(closest-side, rgba(77, 155, 255, .18), transparent 70%) 82% 10%/55% 80% no-repeat;
   pointer-events: none;
 }
 .hero-grid { position: relative; display: grid; grid-template-columns: 1.06fr .94fr; gap: 44px; align-items: center; }
@@ -464,7 +473,7 @@ p, li, .acc-body { max-width: 68ch; }
   display: flex; align-items: center; gap: var(--sp-2); padding: 9px 14px; border-radius: 12px;
   border: 1px solid var(--line-input); background: var(--surface); min-height: 44px;
 }
-.field:focus-within { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 74, 255, .15); }
+.field:focus-within { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(18, 82, 224, .15); }
 .field input, .field select { border: 0; background: none; outline: none; font: inherit; color: inherit; width: 100%; }
 .field.grow { flex: 1; min-width: 200px; }
 select { cursor: pointer; }
@@ -487,7 +496,7 @@ select { cursor: pointer; }
 }
 .variant:hover { border-color: var(--line-strong); background: var(--bg-soft); }
 .variant small { display: block; font-weight: var(--fw-ui); color: var(--ink-soft); font-size: var(--fs-sm); }
-.variant[aria-pressed='true'], .variant[aria-checked='true'] { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 74, 255, .16); }
+.variant[aria-pressed='true'], .variant[aria-checked='true'] { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(18, 82, 224, .16); }
 .qty { display: inline-flex; align-items: center; border: 1px solid var(--line-input); border-radius: 12px; overflow: hidden; height: 52px; }
 .qty button { width: 44px; height: 52px; background: none; border: 0; cursor: pointer; font-size: var(--fs-lg); }
 .qty button:hover { background: var(--bg-sunk); }
@@ -602,7 +611,7 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
   width: 100%; min-height: 44px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line-input);
   background: var(--surface); color: var(--ink); font: inherit; outline: none;
 }
-.input:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 74, 255, .15); }
+.input:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(18, 82, 224, .15); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-field { margin-bottom: 14px; }
 .err { color: var(--danger); font-size: var(--fs-sm); margin-top: 4px; display: none; }
@@ -622,7 +631,7 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
   border: 1px solid var(--line-input); background: var(--surface); cursor: pointer;
 }
 .pay-option:hover { border-color: var(--line-strong); background: var(--bg-soft); }
-.pay-option[aria-pressed='true'], .pay-option[aria-checked='true'] { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109, 74, 255, .14); }
+.pay-option[aria-pressed='true'], .pay-option[aria-checked='true'] { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(18, 82, 224, .14); }
 .coin { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: var(--fs-xs); flex: none; }
 .coin.btc { background: #b3690f; }
 .coin.sol { background: linear-gradient(135deg, #7c2dff, #0e8f63); }
@@ -691,7 +700,7 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 
 .cta-band {
   border-radius: var(--radius-lg); padding: clamp(28px, 4vw, 52px); color: #fff; position: relative; overflow: hidden;
-  background: linear-gradient(110deg, #4c1d95, var(--violet) 45%, #0891b2);
+  background: linear-gradient(110deg, var(--brand-deep), var(--violet) 48%, #1b7fd4);
 }
 .cta-band h2 { color: #fff; }
 .cta-band p { color: rgba(255, 255, 255, .9); max-width: 56ch; margin-inline: 0; }
@@ -980,8 +989,9 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 }
 .vial-brand {
   font-size: 3.1cqw; font-weight: 800; letter-spacing: .04em; line-height: 1.1;
-  color: var(--cat-accent, var(--violet));
+  color: #1252e0;
 }
+.vial-brand b { color: #0f172a; font-weight: 800; }
 .vial-name {
   font-size: 3.9cqw; font-weight: 700; line-height: 1.12; letter-spacing: -.01em;
   overflow-wrap: anywhere;
@@ -1004,3 +1014,47 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 /* The photograph is shot on white; on a dark page it sits on its own tile so
    it reads as product photography rather than a hole punched in the layout. */
 [data-theme='dark'] .vial-photo { filter: brightness(.94) contrast(1.02); }
+
+
+/* ── Logo ─────────────────────────────────────────────────────────────── */
+.logo-mark { width: 34px; height: 34px; flex: none; display: block; }
+.brand { gap: 10px; }
+.brand-word { display: inline-flex; align-items: baseline; letter-spacing: -.015em; }
+.brand-word b { font-weight: 800; color: var(--ink); }
+.brand-word i { font-weight: 800; font-style: normal; color: var(--violet); }
+[data-theme='dark'] .brand-word i { color: var(--brand-lit); }
+.brand-tag {
+  display: block; font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; margin-top: 2px;
+}
+@media (max-width: 860px) { .brand-tag { display: none; } }
+
+
+/* ── Activity ticker ──────────────────────────────────────────────────────
+   Bottom-left, out of the way of the cart drawer and the toast host. It
+   reports registry events, so it sits at notice weight, not alert weight. */
+.activity {
+  position: fixed; left: 16px; bottom: 16px; z-index: 70;
+  width: min(340px, calc(100vw - 32px));
+  display: flex; align-items: flex-start; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--violet);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .3s ease, transform .3s ease;
+}
+.activity.is-in { opacity: 1; transform: none; }
+.activity-body { display: flex; gap: var(--sp-3); align-items: flex-start; flex: 1; min-width: 0; }
+.activity-icon {
+  color: var(--violet); font-size: var(--fs-sm); line-height: 1.4; flex: none;
+}
+.activity-text { display: block; font-size: var(--fs-sm); line-height: 1.4; }
+.activity-text b { font-weight: 650; }
+.activity-meta { display: block; font-size: var(--fs-xs); color: var(--ink-faint); margin-top: 2px; }
+.activity-close {
+  flex: none; width: 26px; height: 26px; border-radius: 8px; border: 0;
+  background: none; color: var(--ink-faint); cursor: pointer; line-height: 1;
+}
+.activity-close:hover { background: var(--bg-sunk); color: var(--ink); }
+@media (max-width: 640px) { .activity { display: none; } }
