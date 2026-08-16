@@ -250,10 +250,11 @@ const LABEL = { left: 32, top: 57, width: 36, height: 22 };
  * Product art: the vial photograph with our label on it.
  * @param {object} product catalogue entry
  * @param {string} [size]  variant size printed on the label
- * @param {object} [opts]  `{ card: true }` for listings and thumbnails: the
- *                         small image, and no composited text — at card width
- *                         the label type clips mid-word, and the product name
- *                         is already printed directly beneath the card
+ * @param {object} [opts]  `{ card: true }` for listings: the small image and a
+ *                         short label — just the compound name, which is what
+ *                         survives legibly at card width.
+ *                         `{ compact: true }` for cart thumbnails, where the
+ *                         vial renders under 90px and any type is mush.
  */
 export function vialArt(product, size, opts = {}) {
   const accent = product.accent || '#7c5cff';
@@ -262,12 +263,15 @@ export function vialArt(product, size, opts = {}) {
   const isSupply = product.category === 'supplies';
 
   // The photograph's label already carries the logo, so the overlay is text
-  // only — and only where there is room for it to be read.
-  const label = opts.card || opts.compact
+  // only — and it says less as the vial gets smaller. At card width the size
+  // and the use line were what overran the plate and clipped the name.
+  const label = opts.compact
     ? ''
-    : `<span class="vial-name">${esc(name)}</span>
-       <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
-       <span class="vial-ruo">RESEARCH USE ONLY</span>`;
+    : opts.card
+      ? `<span class="vial-name">${esc(name)}</span>`
+      : `<span class="vial-name">${esc(name)}</span>
+         <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
+         <span class="vial-ruo">RESEARCH USE ONLY</span>`;
 
   // The photograph is of a vial, so it stands in only for things that come in
   // one. Capsules, solutions and consumables (syringes, pads, the storage case)
@@ -283,7 +287,8 @@ export function vialArt(product, size, opts = {}) {
   }
 
   const small = opts.card || opts.compact;
-  return `<div class="vial${small ? ' is-compact' : ''}" style="--cat-accent:${accent}">
+  const mode = opts.compact ? ' is-compact' : opts.card ? ' is-card' : '';
+  return `<div class="vial${mode}" style="--cat-accent:${accent}">
     <img class="vial-photo" src="${small ? PHOTO_CARD : PHOTO}" alt="" width="${small ? 420 : 1200}"
          height="${small ? 420 : 1200}" loading="lazy" decoding="async"
          onerror="this.closest('.vial').classList.add('no-photo')" />

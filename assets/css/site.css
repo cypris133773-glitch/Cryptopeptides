@@ -946,12 +946,18 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
   .order-facts > div { min-width: 45%; }
 }
 
-/* A class selector beats the UA rule for [hidden], so the closed drawer would
-   otherwise stay laid out — off-screen to the right, extending the document's
-   scroll width on narrow viewports and keeping its buttons in the tab order. */
+/* A class selector beats the UA rule for [hidden], so any component that sets
+   its own `display` stays laid out when hidden — invisible, but still on top
+   of the page and still swallowing every tap that lands on it. The closed chat
+   panel covered most of a phone screen exactly this way.
+   Anything in this file that sets `display` and is toggled with `hidden`
+   belongs in this list. */
 .drawer[hidden],
 .drawer-scrim[hidden],
-.mobile-nav[hidden] { display: none; }
+.mobile-nav[hidden],
+.chat-panel[hidden],
+.tabpanel[hidden],
+.activity[hidden] { display: none !important; }
 
 /* Grid children default to min-width:auto, so a long word or a wide table cell
    pushes the track wider than its share and the page scrolls sideways. */
@@ -993,7 +999,8 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 }
 .vial-name {
   font-size: 3.9cqw; font-weight: 700; line-height: 1.12; letter-spacing: -.01em;
-  overflow-wrap: anywhere;
+  overflow-wrap: anywhere; max-width: 100%;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .vial-sub { font-size: 2.6cqw; color: #475569; line-height: 1.2; }
 .vial-ruo { font-size: 1.9cqw; letter-spacing: .08em; color: #94a3b8; }
@@ -1133,7 +1140,15 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
    a 420px copy), 49 container-query contexts driving cqw type (now only where
    the label is actually drawn), and a blurred backdrop behind a sticky header,
    which forces the compositor to re-blur on every scroll frame. */
+/* Cart thumbnails carry no type, so they need no container context — that was
+   49 of them on the listing page, each sizing text that was never drawn. */
 .vial.is-compact { container-type: normal; }
+
+/* Card labels: name only, on one or two lines, centred on the plate rather
+   than starting at its top edge where a second line ran off the bottom. */
+.vial.is-card .vial-label { justify-content: center; top: 56%; height: 24%; }
+.vial.is-card .vial-name { font-size: 4.6cqw; }
+.vial.is-card .vial-label::after { display: none; }
 
 @media (max-width: 860px) {
   .site-header { backdrop-filter: none; background: var(--bg); }
