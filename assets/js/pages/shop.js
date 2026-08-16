@@ -172,6 +172,24 @@ $('#q').addEventListener('input', (e) => {
 // Back/Forward re-applies the URL rather than leaving a stale grid on screen.
 window.addEventListener('popstate', () => location.reload());
 
+/* The filter column collapses behind a button on narrow screens. It had no
+   handler at all, and an inline display:none in the markup that beat the media
+   query — so on a phone the 49 cards could only be searched, never filtered. */
+const toggle = $('#filter-toggle');
+const panel = $('#filters-panel');
+const mq = window.matchMedia('(max-width: 1024px)');
+const syncFilterUI = () => {
+  toggle.hidden = !mq.matches;
+  panel.classList.toggle('is-open', !mq.matches);
+  toggle.setAttribute('aria-expanded', String(!mq.matches));
+};
+toggle.addEventListener('click', () => {
+  const open = panel.classList.toggle('is-open');
+  toggle.setAttribute('aria-expanded', String(open));
+});
+mq.addEventListener('change', syncFilterUI);
+syncFilterUI();
+
 // The "certificates published" filter only makes sense once any exist.
 const certified = PRODUCTS.filter((p) => publishedForSlug(p.slug).length).length;
 const certRow = $('#f-cert')?.closest('.check');

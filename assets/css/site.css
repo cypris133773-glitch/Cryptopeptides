@@ -1158,3 +1158,16 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
   color: var(--violet); text-decoration: underline; text-underline-offset: 3px; word-break: break-all;
 }
 [data-theme='dark'] .contact-band a.mail { color: var(--brand-lit); }
+
+/* Per-mg, the guarantee and the volume hint — the three things the market
+   review found missing where the buying decision is actually made. */
+.price-per-mg { font-size: var(--fs-xs); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.guarantee {
+  margin-top: var(--sp-4); padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--ok); background: var(--ok-tint);
+  font-size: var(--fs-sm); line-height: 1.5;
+}
+.guarantee b { display: block; color: var(--ok); }
+.guarantee a { text-decoration: underline; }
+#per-mg, #blend-compare { margin: -6px 0 0; font-variant-numeric: tabular-nums; }
+#volume-hint { margin: 0 0 var(--sp-3); }

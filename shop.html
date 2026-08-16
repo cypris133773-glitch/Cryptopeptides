@@ -31,7 +31,7 @@
 
     <div class="shop-layout" style="margin-top:26px">
       <aside class="filters">
-        <button class="btn btn-ghost btn-block" id="filter-toggle" style="margin-bottom:12px;display:none">Filters</button>
+        <button class="btn btn-ghost btn-block" id="filter-toggle" aria-expanded="false" aria-controls="filters-panel">Filters</button>
         <div class="filters-panel" id="filters-panel">
           <div class="filter-group">
             <h4>Category</h4>
@@ -71,7 +71,6 @@
               <option value="price-asc">Price: low to high</option>
               <option value="price-desc">Price: high to low</option>
               <option value="name">Name A–Z</option>
-              <option value="rating">Top rated</option>
               <option value="new">Newest</option>
             </select>
           </div>

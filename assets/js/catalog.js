@@ -910,14 +910,31 @@ const round2 = (n) => Math.round(n * 100) / 100;
  *  once at the end, so stacking stages cannot compound a rounding error. */
 export const salePrice = (msrp) => round2(msrp * (1 - DISCOUNT));
 
+/* Milligrams in a size string. Parenthesised splits describe how a total is
+ * divided, not additional material — "10mg (5/5)" is 10mg — so they come out
+ * before the numbers are summed, while "10mg + 10mg" is genuinely 20mg. */
+export function sizeMg(size) {
+  const flat = String(size).replace(/\([^)]*\)/g, ' ');
+  const hits = [...flat.matchAll(/(\d+(?:\.\d+)?)\s*mg\b/gi)].map((m) => Number(m[1]));
+  return hits.length ? hits.reduce((a, b) => a + b, 0) : null;
+}
+
 function normalise(p) {
-  const variants = p.variants.map((variant) => ({
-    ...variant,
-    id: `${p.slug}--${variant.size.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
-    price: salePrice(variant.msrp),
-    productSlug: p.slug,
-    productName: p.name,
-  }));
+  const variants = p.variants.map((variant) => {
+    const mg = sizeMg(variant.size);
+    const price = salePrice(variant.msrp);
+    return {
+      ...variant,
+      id: `${p.slug}--${variant.size.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+      price,
+      mg,
+      // The comparison this category actually buys on: the same compound can
+      // run twice the price per milligram at the small size.
+      perMg: mg ? price / mg : null,
+      productSlug: p.slug,
+      productName: p.name,
+    };
+  });
   const prices = variants.map((variant) => variant.price);
   const isSupply = p.category === 'supplies';
   return {
@@ -942,6 +959,26 @@ const BY_VARIANT = new Map();
 for (const p of PRODUCTS) for (const variant of p.variants) BY_VARIANT.set(variant.id, { product: p, variant });
 
 export const getProduct = (slug) => BY_SLUG.get(slug);
+
+/**
+ * What a blend or kit saves against buying its parts separately.
+ * @returns {{parts: number, saving: number, pct: number}|null} null when the
+ *   variant lists no components, or when the parts are cheaper — a "saving"
+ *   that is negative is not a saving, and printing it either way would be a
+ *   claim the basket disproves.
+ */
+export function blendSaving(variant) {
+  if (!variant?.components) return null;
+  let parts = 0;
+  for (const [slug, size] of variant.components) {
+    const product = BY_SLUG.get(slug);
+    const match = product?.variants.find((v) => v.size === size);
+    if (!match) return null; // an unresolvable component makes the sum a guess
+    parts += match.price;
+  }
+  const saving = parts - variant.price;
+  return saving > 0.005 ? { parts, saving, pct: Math.round((saving / parts) * 100) } : { parts, saving: 0, pct: 0 };
+}
 export const getVariant = (id) => BY_VARIANT.get(id);
 
 export const money = (n) =>

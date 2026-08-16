@@ -1,7 +1,7 @@
 // Shared shell: header, footer, cart state, drawer, toasts, theme, age gate.
 import {
   SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISCOUNT_PCT,
-  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT,
+  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT, blendSaving,
 } from './catalog.js';
 import { vialArt } from './vial.js';
 import { publishedCount } from './lab.js';
@@ -11,8 +11,12 @@ import { initAssistant } from './assistant.js';
 
 export {
   money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT,
-  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT,
+  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT, blendSaving,
 };
+
+/** "$5.25/mg" — the figure buyers in this category compare on. */
+export const perMgLabel = (variant) =>
+  variant?.perMg ? `${money(variant.perMg).replace(/\.00$/, '')}/mg` : '';
 
 const CART_KEY = 'cp_cart_v1';
 const THEME_KEY = 'cp_theme';
@@ -178,9 +182,16 @@ export function productCard(product) {
   const href = `product.html?p=${encodeURIComponent(product.slug)}`;
   // No ratings here: no customer review has been collected, so there is nothing
   // honest to put in a stars row.
+  const cheapest = product.variants.find((v) => v.price === product.minPrice);
+  const bulk = [...product.variants].filter((v) => v.perMg).sort((a, b) => a.perMg - b.perMg)[0];
   const meta = product.purity
     ? `${esc(product.purity)} target purity`
     : esc(product.spec || product.categoryName);
+  // Per-mg is quoted from the best size, because that is the number a buyer
+  // comparing vendors will end up at anyway.
+  const perMg = bulk
+    ? `<div class="price-per-mg">from ${esc(perMgLabel(bulk))}${bulk !== cheapest ? ` at ${esc(bulk.size)}` : ''}</div>`
+    : '';
   return `<article class="product-card">
     <a class="pc-media" href="${href}" tabindex="-1" aria-hidden="true">
       ${vialArt(product, null, { card: true })}
@@ -191,6 +202,7 @@ export function productCard(product) {
       <h3 class="pc-name"><a href="${href}">${esc(product.name)}</a></h3>
       <span class="pc-sum">${esc(product.summary)}</span>
       <div class="pc-meta">${meta}</div>
+      ${perMg}
       <div class="pc-foot">
         <div class="price">${from}${money(product.minPrice)}<span class="was">${money(wasPrice)}</span></div>
         <a class="btn btn-sm btn-primary" href="${href}">

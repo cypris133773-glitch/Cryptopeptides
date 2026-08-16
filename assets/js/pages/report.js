@@ -1,6 +1,7 @@
 import { initShell, $, esc, SITE } from '../app.js';
 import { getBatch, LAB_GENERIC, METHODS } from '../lab.js';
 import { getProduct } from '../catalog.js';
+import { setPageMeta } from '../seo.js';
 
 initShell();
 
@@ -16,7 +17,13 @@ if (!batch) {
 } else {
   const product = getProduct(batch.slug);
   const report = batch.report;
-  document.title = `${batch.batch} — Lot record — CryptoPeptides`;
+  setPageMeta({
+    title: `Lot ${batch.batch} — ${batch.product} — CryptoPeptides`,
+    description: `Record for lot ${batch.batch} of ${batch.product}: filled ${batch.dated}${
+      batch.report ? `, certificate issued ${batch.report.tested || ''}` : ', certificate not yet issued'
+    }.`,
+    path: `report.html?b=${encodeURIComponent(batch.batch)}`,
+  });
 
   root.innerHTML = `
     <nav class="tiny muted no-print" style="margin-bottom:14px">

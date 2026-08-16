@@ -1,7 +1,9 @@
 import {
   initShell, PRODUCTS, productCard, addToCart, money, $, $$, esc, DISCOUNT, SITE,
+  perMgLabel, FREE_VIAL_PER,
 } from '../app.js';
-import { getProduct, DISCOUNT_PCT } from '../catalog.js';
+import { getProduct, DISCOUNT_PCT, blendSaving } from '../catalog.js';
+import { setPageMeta, productSchema, breadcrumbSchema } from '../seo.js';
 import { vialArt } from '../vial.js';
 import { batchesForSlug, publishedForSlug, LAB_GENERIC, METHODS } from '../lab.js';
 
@@ -58,13 +60,15 @@ function renderPDP(p) {
         <span class="was" id="price-was"></span>
         <span class="save" id="price-save"></span>
       </div>
+      <p class="small muted" id="per-mg"></p>
+      <p class="small" id="blend-compare" hidden></p>
 
       <div class="field-label"><b>Size</b></div>
       <div class="variant-row" id="variants" role="group" aria-label="Size">
         ${p.variants
           .map(
             (v, i) => `<button type="button" class="variant" data-vid="${v.id}" aria-pressed="${i === 0}">
-              ${esc(v.size)}<small>${money(v.price)}</small>
+              ${esc(v.size)}<small>${money(v.price)}${v.perMg ? ` · ${esc(perMgLabel(v))}` : ''}</small>
             </button>`,
           )
           .join('')}
@@ -78,6 +82,7 @@ function renderPDP(p) {
         </div>
         <button class="btn btn-primary btn-lg buy-main" id="add">Add to cart</button>
       </div>
+      <p class="small muted" id="volume-hint"></p>
       <button class="btn btn-dark btn-block" id="buy">Buy now with crypto</button>
 
       <ul class="ticks small muted">
@@ -86,6 +91,13 @@ function renderPDP(p) {
         <li>Free tracked shipping over ${money(SITE.freeShippingOver)} to most destinations</li>
         <li>BTC, SOL and ETH accepted at checkout</li>
       </ul>
+
+      <div class="guarantee">
+        <b>If it fails, you don't pay for it.</b>
+        Send us your chromatogram and the lot number and we reanalyse a retain sample from the same lot.
+        Anything that fails its specification is refunded in full, shipping included, and the result is
+        published either way. <a href="terms.html">Terms of sale</a>.
+      </div>
 
       <div class="note" style="margin-top:18px">
         <strong>Research use only.</strong> Not for human or veterinary consumption. Sold to qualified
@@ -201,10 +213,29 @@ function renderPDP(p) {
   let selected = p.variants[0];
 
   const paint = () => {
+    const qty = Number($('#qty')?.value) || 1;
+    const hint = $('#volume-hint');
+    if (hint) {
+      const toNext = (FREE_VIAL_PER - (qty % FREE_VIAL_PER)) % FREE_VIAL_PER;
+      const free = Math.floor(qty / FREE_VIAL_PER);
+      hint.innerHTML = free
+        ? `<b class="ok-text">${free} vial${free === 1 ? '' : 's'} free</b> at this quantity — one with every ${FREE_VIAL_PER}.`
+        : `Add <b>${toNext}</b> more vial${toNext === 1 ? '' : 's'} to this order and one is free — one with every ${FREE_VIAL_PER}.`;
+    }
+    const compare = $('#blend-compare');
+    if (compare) {
+      const b = blendSaving(selected);
+      compare.innerHTML = b && b.saving > 0
+        ? `Buying these separately costs ${money(b.parts)} — this kit saves <b class="ok-text">${money(b.saving)}</b> (${b.pct}%).`
+        : '';
+      compare.hidden = !(b && b.saving > 0);
+    }
     $('#price-now').textContent = money(selected.price);
     $('#price-was').textContent = money(selected.msrp);
     $('#price-was').setAttribute('aria-label', `List price ${money(selected.msrp)}`);
     $('#price-save').textContent = `Save ${money(selected.msrp - selected.price)}`;
+    const perMg = $('#per-mg');
+    if (perMg) perMg.textContent = selected.perMg ? `${perMgLabel(selected)} · ${selected.size}` : '';
     $$('#variants .variant').forEach((b) =>
       b.setAttribute('aria-pressed', String(b.dataset.vid === selected.id)),
     );
@@ -226,12 +257,17 @@ function renderPDP(p) {
   $('#q-inc').addEventListener('click', () => {
     qtyInput.value = String(clampQty() + 1);
     clampQty();
+    paint();
   });
   $('#q-dec').addEventListener('click', () => {
     qtyInput.value = String(clampQty() - 1);
     clampQty();
+    paint();
   });
-  qtyInput.addEventListener('change', clampQty);
+  qtyInput.addEventListener('change', () => {
+    clampQty();
+    paint();
+  });
 
   $('#add').addEventListener('click', () => addToCart(selected.id, clampQty()));
   $('#buy').addEventListener('click', () => {
@@ -271,12 +307,20 @@ if (!product) {
     <a class="btn btn-primary" href="shop.html">Back to the catalogue</a>
   </div>`;
 } else {
-  document.title = `${product.name} — CryptoPeptides`;
-  document
-    .querySelector('meta[name="description"]')
-    ?.setAttribute(
-      'content',
-      `${product.name}: ${product.summary} ${DISCOUNT_PCT}% below list price, crypto checkout.`,
-    );
+  // One HTML file serves 49 products, so the canonical, the social tags and
+  // the structured data have to be rewritten per product — otherwise all 49
+  // declare themselves the same page and none of them can rank.
+  setPageMeta({
+    title: `${product.name} — CryptoPeptides`,
+    description: `${product.name}: ${product.summary} ${DISCOUNT_PCT}% below list price, lot-numbered, crypto checkout.`,
+    path: `product.html?p=${encodeURIComponent(product.slug)}`,
+  });
+  productSchema(product);
+  breadcrumbSchema([
+    ['Home', 'index.html'],
+    ['Shop', 'shop.html'],
+    [product.categoryName, `shop.html?c=${product.category}`],
+    [product.name, `product.html?p=${encodeURIComponent(product.slug)}`],
+  ]);
   renderPDP(product);
 }

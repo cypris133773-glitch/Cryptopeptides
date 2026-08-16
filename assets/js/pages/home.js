@@ -1,8 +1,10 @@
 import { initShell, PRODUCTS, CATEGORIES, productCard, $, esc, money, DISCOUNT_PCT } from '../app.js';
 import { vialArt } from '../vial.js';
 import { BATCHES, publishedCount, LAB_GENERIC } from '../lab.js';
+import { siteSchema } from '../seo.js';
 
 initShell();
+siteSchema();
 
 const set = (sel, value) => {
   const el = $(sel);
