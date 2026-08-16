@@ -1,6 +1,6 @@
 // Shared shell: header, footer, cart state, drawer, toasts, theme, age gate.
 import { SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone } from './catalog.js';
-import { vialSVG } from './vial.js';
+import { vialArt } from './vial.js';
 import { publishedCount } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
 
@@ -158,7 +158,7 @@ export function productCard(product) {
     : esc(product.spec || product.categoryName);
   return `<article class="product-card">
     <a class="pc-media" href="${href}" tabindex="-1" aria-hidden="true">
-      ${vialSVG(product)}
+      ${vialArt(product)}
       <div class="pc-badges">${badges.join('')}</div>
     </a>
     <div class="pc-body">
@@ -381,7 +381,7 @@ function renderDrawer() {
   body.innerHTML = lines
     .map(
       (l) => `<div class="line-item">
-        <div class="thumb" aria-hidden="true">${vialSVG(l.product, l.variant.size)}</div>
+        <div class="thumb" aria-hidden="true">${vialArt(l.product, l.variant.size)}</div>
         <div>
           <b>${esc(l.product.name)}</b>
           <span class="sz">${esc(l.variant.size)}</span>

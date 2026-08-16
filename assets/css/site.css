@@ -415,7 +415,7 @@ p, li, .acc-body { max-width: 68ch; }
   position: relative; display: block; background: var(--bg-soft);
   border-radius: 21px 21px 0 0; overflow: hidden;
 }
-.pc-media svg { display: block; width: 100%; height: auto; }
+.pc-media svg, .pc-media .vial { display: block; width: 100%; height: auto; }
 .pc-badges { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .badge {
   font-size: var(--fs-xs); font-weight: var(--fw-head); letter-spacing: .06em; text-transform: uppercase;
@@ -435,7 +435,14 @@ p, li, .acc-body { max-width: 68ch; }
 .pc-lot { font-size: var(--fs-xs); color: var(--ink-soft); }
 .pc-meta { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-sm); color: var(--ink-mute); }
 .stars { color: var(--star); letter-spacing: .5px; font-size: var(--fs-sm); }
-.pc-foot { margin-top: auto; padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+/* Price and action share a row until the price needs the width — at three or
+   four columns the button was being pushed past the card edge. */
+.pc-foot {
+  margin-top: auto; padding-top: var(--sp-3); display: flex; flex-wrap: wrap;
+  align-items: center; justify-content: space-between; gap: var(--sp-2);
+}
+.pc-foot .price { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+.pc-foot .btn { flex: 0 0 auto; }
 .price { font-weight: 800; font-size: var(--fs-md); }
 .price small { font-weight: var(--fw-ui); font-size: var(--fs-xs); color: var(--ink-mute); }
 .was { text-decoration: line-through; color: var(--ink-mute); font-weight: var(--fw-ui); font-size: var(--fs-sm); margin-left: 6px; }
@@ -805,7 +812,7 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
   /* Two compact columns beat one tall card and a sixty-screen scroll. */
   .pc-body { padding: 10px 12px 12px; gap: 4px; }
   .pc-sum { display: none; }
-  .pc-foot { flex-wrap: wrap; }
+  .pc-foot .btn { width: 100%; }
   .grid { gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -944,3 +951,56 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 @media (max-width: 480px) {
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
 }
+
+/* ── Product art ──────────────────────────────────────────────────────────
+   One photographed vial with our label composited on top. Type inside the
+   label is sized in cqw so the same markup reads correctly from a 44px cart
+   thumbnail up to the 600px product page image. */
+.vial {
+  position: relative;
+  aspect-ratio: 1;
+  container-type: inline-size;
+  background: var(--vial-ground, #fff);
+  overflow: hidden;
+}
+.vial-photo { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.vial-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .35cqw;
+  padding: 1.4cqw 1.8cqw;
+  background: #fff;
+  color: #0f172a;
+  border-left: 1.1cqw solid var(--cat-accent, var(--violet));
+  box-shadow: 0 .2cqw .6cqw rgba(15, 23, 42, .10);
+  overflow: hidden;
+}
+.vial-brand {
+  font-size: 3.1cqw; font-weight: 800; letter-spacing: .04em; line-height: 1.1;
+  color: var(--cat-accent, var(--violet));
+}
+.vial-name {
+  font-size: 3.9cqw; font-weight: 700; line-height: 1.12; letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+}
+.vial-sub { font-size: 2.7cqw; color: #475569; line-height: 1.2; }
+.vial-ruo { font-size: 2cqw; letter-spacing: .08em; color: #94a3b8; margin-top: auto; }
+
+/* Thumbnails: the label text would be sub-pixel mush, so only the brand
+   stripe survives. */
+.vial.is-compact .vial-label { padding: 0; border-left-width: 2cqw; background: #fff; }
+.vial-stripe { display: block; height: 100%; }
+
+/* The photograph is a binary asset; a checkout without it still renders. */
+.vial-fallback { display: none; }
+.vial-fallback svg { display: block; width: 100%; height: auto; }
+.vial.no-photo .vial-photo,
+.vial.no-photo .vial-label { display: none; }
+.vial.no-photo .vial-fallback { display: block; }
+
+/* The photograph is shot on white; on a dark page it sits on its own tile so
+   it reads as product photography rather than a hole punched in the layout. */
+[data-theme='dark'] .vial-photo { filter: brightness(.94) contrast(1.02); }

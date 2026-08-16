@@ -1,10 +1,11 @@
-// Product imagery is drawn, not photographed: every product gets a vector vial
-// carrying our own label, so the catalogue stays consistent and ships with no
-// external image requests.
+// Product imagery: one photographed vial, with our own label composited over
+// it per product, so the catalogue stays consistent and a new product needs no
+// new photography. `vialArt()` at the bottom of this file is the entry point.
 //
-// Theme-dependent colours come from CSS custom properties (`--vial-*`, declared
-// in site.css) with literal fallbacks, so the same markup renders correctly in
-// light and dark and still works when serialised to a data URI.
+// The drawn vial that makes up most of this module is now the fallback for
+// when the photograph cannot be loaded. Its theme-dependent colours come from
+// CSS custom properties (`--vial-*`, declared in site.css) with literal
+// fallbacks, so it renders correctly in light and dark.
 import { SITE } from './catalog.js';
 
 const esc = (s) =>
@@ -95,12 +96,12 @@ function labelBlock(accent, lines, sub) {
 }
 
 /**
- * SVG markup for a product vial.
+ * Drawn fallback vial — used only when the photograph is unavailable.
  * @param {object} product catalogue entry
  * @param {string} [size]   variant size printed on the label
  * @param {object} [opts]   `{ compact: true }` drops the label text for thumbnails
  */
-export function vialSVG(product, size, opts = {}) {
+function drawnVial(product, size, opts = {}) {
   const accent = product.accent || '#7c5cff';
   const seed = hash(product.slug);
   const uid = `v${seed.toString(36)}${(renderSeq++).toString(36)}`;
@@ -204,6 +205,56 @@ export function vialSVG(product, size, opts = {}) {
   </svg>`;
 }
 
-/** Data-URI form, for use in `img[src]` and social meta tags. */
-export const vialDataURI = (product, size) =>
-  'data:image/svg+xml;utf8,' + encodeURIComponent(vialSVG(product, size));
+
+
+
+/* ── Photographic product art ──────────────────────────────────────────────
+   Every product is the same photographed vial with our own label composited
+   over it, so the catalogue stays consistent and a new product needs no new
+   photography. The label geometry below is measured against PHOTO as a
+   percentage of its square frame — retune these four numbers if the photograph
+   is ever reshot or recropped.
+
+   PHOTO is empty until the photograph is committed — an empty value renders
+   the drawn vial alone rather than pointing every page at a 404. Set it to the
+   file's path and the whole catalogue switches over at once. If the file is
+   set but fails to load, the <img> fires onerror, the container flips to
+   .no-photo and the drawn vial takes over again. */
+
+const PHOTO = ''; // e.g. 'assets/img/vial-base.jpg'
+const LABEL = { left: 30.5, top: 44, width: 39, height: 37 };
+
+/**
+ * Product art: the vial photograph with our label on it.
+ * @param {object} product catalogue entry
+ * @param {string} [size]  variant size printed on the label
+ * @param {object} [opts]  `{ compact: true }` for thumbnails — label text is
+ *                         unreadable below roughly 90px, so only the brand
+ *                         stripe is drawn
+ */
+export function vialArt(product, size, opts = {}) {
+  const accent = product.accent || '#7c5cff';
+  const sub = size ? String(size) : String(product.variants[0].size);
+  const name = product.name.replace(/\s*\(.*\)$/, '');
+  const isSupply = product.category === 'supplies';
+
+  const label = opts.compact
+    ? `<span class="vial-stripe"></span>`
+    : `<span class="vial-brand">${esc(SITE.name.toUpperCase())}</span>
+       <span class="vial-name">${esc(name)}</span>
+       <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
+       <span class="vial-ruo">RESEARCH USE ONLY</span>`;
+
+  if (!PHOTO) {
+    return `<div class="vial no-photo" style="--cat-accent:${accent}">
+      <span class="vial-fallback">${drawnVial(product, size, opts)}</span>
+    </div>`;
+  }
+
+  return `<div class="vial${opts.compact ? ' is-compact' : ''}" style="--cat-accent:${accent}">
+    <img class="vial-photo" src="${PHOTO}" alt="" loading="lazy" decoding="async"
+         onerror="this.closest('.vial').classList.add('no-photo')" />
+    <span class="vial-label" style="left:${LABEL.left}%;top:${LABEL.top}%;width:${LABEL.width}%;height:${LABEL.height}%">${label}</span>
+    <span class="vial-fallback">${drawnVial(product, size, opts)}</span>
+  </div>`;
+}

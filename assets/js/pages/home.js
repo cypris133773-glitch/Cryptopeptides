@@ -1,5 +1,5 @@
 import { initShell, PRODUCTS, CATEGORIES, productCard, $, esc, money, DISCOUNT_PCT } from '../app.js';
-import { vialSVG } from '../vial.js';
+import { vialArt } from '../vial.js';
 import { BATCHES, publishedCount, LAB_GENERIC } from '../lab.js';
 
 initShell();
@@ -18,7 +18,7 @@ if (heroArt) {
   heroArt.innerHTML = heroPicks
     .map(
       (p) => `<a class="card-mini" href="product.html?p=${p.slug}">
-        ${vialSVG(p)}
+        ${vialArt(p)}
         <b>${esc(p.name)}</b>
         <span>from ${money(p.minPrice)}</span>
       </a>`,

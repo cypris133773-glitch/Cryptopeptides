@@ -2,7 +2,7 @@ import {
   initShell, PRODUCTS, productCard, addToCart, money, $, $$, esc, DISCOUNT, SITE,
 } from '../app.js';
 import { getProduct, DISCOUNT_PCT } from '../catalog.js';
-import { vialSVG } from '../vial.js';
+import { vialArt } from '../vial.js';
 import { batchesForSlug, publishedForSlug, LAB_GENERIC, METHODS } from '../lab.js';
 
 initShell();
@@ -27,7 +27,7 @@ function renderPDP(p) {
   <div class="pdp">
     <div>
       <div class="pdp-media">
-        ${vialSVG(p)}
+        ${vialArt(p)}
         <div class="pc-badges">
           ${p.badges.includes('bestseller') ? '<span class="badge best">Popular</span>' : ''}
           ${p.badges.includes('new') ? '<span class="badge new">New</span>' : ''}
