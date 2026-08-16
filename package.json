@@ -1,0 +1,13 @@
+{
+  "name": "cryptopeptides",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CryptoPeptides — research peptide storefront with crypto-only checkout.",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.js",
+    "dev": "node tools/serve.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "UNLICENSED"
+}
