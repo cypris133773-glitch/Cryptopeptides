@@ -105,9 +105,10 @@ function seed(str) {
 const DAY = 86400000;
 const iso = (date) => date.toISOString().slice(0, 10);
 
-/** One lot per product, plus a second older lot for high-volume lines. */
+/** One lot per product. A second lot per bestseller only padded the registry:
+ *  a lot number is worth something because it identifies material, not because
+ *  there are many of them. */
 function lotsFor(product) {
-  if (product.category === 'supplies') return [];
   const s = seed(product.slug);
   const make = (n) => {
     // Lots are dated in the past — a future-dated lot is a data bug, and a
@@ -133,9 +134,7 @@ function lotsFor(product) {
       file: report?.file || null,
     };
   };
-  const out = [make(0)];
-  if (product.badges.includes('bestseller')) out.push(make(1));
-  return out;
+  return [make(0)];
 }
 
 export const BATCHES = PRODUCTS.flatMap(lotsFor).sort((a, b) => b.dated.localeCompare(a.dated));
