@@ -974,35 +974,33 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 }
 .vial-photo { display: block; width: 100%; height: 100%; object-fit: cover; }
 
+/* Text only: the photographed label already carries the logo, so the overlay
+   adds nothing behind the type. */
 .vial-label {
   position: absolute;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: .35cqw;
-  padding: 1.4cqw 1.8cqw;
-  background: #fff;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  gap: .4cqw;
   color: #0f172a;
-  border-left: 1.1cqw solid var(--cat-accent, var(--violet));
-  box-shadow: 0 .2cqw .6cqw rgba(15, 23, 42, .10);
   overflow: hidden;
 }
-.vial-brand {
-  font-size: 3.1cqw; font-weight: 800; letter-spacing: .04em; line-height: 1.1;
-  color: #1252e0;
+.vial-label::after {
+  content: ''; width: 34%; height: .5cqw; margin-top: .6cqw; border-radius: 1cqw;
+  background: var(--cat-accent, var(--violet)); opacity: .85;
 }
-.vial-brand b { color: #0f172a; font-weight: 800; }
 .vial-name {
   font-size: 3.9cqw; font-weight: 700; line-height: 1.12; letter-spacing: -.01em;
   overflow-wrap: anywhere;
 }
-.vial-sub { font-size: 2.7cqw; color: #475569; line-height: 1.2; }
-.vial-ruo { font-size: 2cqw; letter-spacing: .08em; color: #94a3b8; margin-top: auto; }
+.vial-sub { font-size: 2.6cqw; color: #475569; line-height: 1.2; }
+.vial-ruo { font-size: 1.9cqw; letter-spacing: .08em; color: #94a3b8; }
 
 /* Thumbnails: the label text would be sub-pixel mush, so only the brand
    stripe survives. */
-.vial.is-compact .vial-label { padding: 0; border-left-width: 2cqw; background: #fff; }
-.vial-stripe { display: block; height: 100%; }
+
 
 /* The photograph is a binary asset; a checkout without it still renders. */
 .vial-fallback { display: none; }
@@ -1058,3 +1056,66 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 }
 .activity-close:hover { background: var(--bg-sunk); color: var(--ink); }
 @media (max-width: 640px) { .activity { display: none; } }
+
+
+/* ── Support assistant ────────────────────────────────────────────────────
+   Bottom right, opposite the activity ticker. The launcher stays a button at
+   all sizes; the panel goes full-width on phones where a floating card would
+   cover the page it is meant to explain. */
+.chat-launcher {
+  position: fixed; right: 16px; bottom: 16px; z-index: 95;
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  min-height: 46px; padding: 0 var(--sp-4) 0 var(--sp-3);
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: linear-gradient(100deg, var(--violet), var(--violet-600)); color: #fff;
+  font-weight: var(--fw-sub); font-size: var(--fs-sm);
+  box-shadow: 0 8px 22px rgba(18, 82, 224, .34);
+  transition: transform .14s ease, box-shadow .2s ease;
+}
+.chat-launcher:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(18, 82, 224, .44); }
+
+.chat-panel {
+  position: fixed; right: 16px; bottom: 74px; z-index: 96;
+  width: min(370px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 120px));
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  opacity: 0; transform: translateY(10px) scale(.98); transform-origin: bottom right;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.chat-panel.is-open { opacity: 1; transform: none; }
+.chat-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--line);
+}
+.chat-head .tiny { display: block; }
+.chat-log { flex: 1; overflow-y: auto; padding: var(--sp-4); display: grid; gap: var(--sp-3); }
+.chat-msg {
+  font-size: var(--fs-sm); line-height: 1.5; padding: var(--sp-3); border-radius: var(--radius);
+  max-width: 92%;
+}
+.chat-msg a { color: var(--violet); text-decoration: underline; }
+[data-theme='dark'] .chat-msg a { color: var(--brand-lit); }
+.chat-bot { background: var(--bg-soft); border: 1px solid var(--line); justify-self: start; }
+.chat-you { background: var(--violet); color: #fff; justify-self: end; }
+.chat-you a { color: #fff; }
+.chat-list { margin: var(--sp-2) 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.chat-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 0 var(--sp-4) var(--sp-3);
+}
+.chat-chip {
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-soft);
+  border-radius: 999px; padding: 5px 11px; font-size: var(--fs-xs); cursor: pointer;
+}
+.chat-chip:hover { border-color: var(--violet); color: var(--violet); }
+.chat-form { display: flex; gap: var(--sp-2); padding: var(--sp-3); border-top: 1px solid var(--line); }
+.chat-form .input { flex: 1; }
+
+@media (max-width: 480px) {
+  .chat-launcher span { display: none; }
+  .chat-launcher { padding: 0; width: 46px; justify-content: center; }
+  .chat-panel { right: 8px; left: 8px; width: auto; bottom: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-panel, .chat-launcher { transition: none; }
+}

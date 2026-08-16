@@ -4,6 +4,7 @@ import { vialArt } from './vial.js';
 import { publishedCount } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
 import { initActivity } from './activity.js';
+import { initAssistant } from './assistant.js';
 
 export { money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone };
 
@@ -581,4 +582,5 @@ export function initShell() {
   initAnnouncements();
   initAgeGate();
   initActivity();
+  initAssistant();
 }

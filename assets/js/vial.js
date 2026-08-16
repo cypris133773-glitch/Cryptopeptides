@@ -60,38 +60,54 @@ function text(x, y, str, { size, weight = 400, fill, avail, spacing, anchor }) {
   return `<text class="vial-text" x="${x}" y="${y}" font-family="system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="${size}" font-weight="${weight}" fill="${fill}"${ls}${an}${fit}>${esc(str)}</text>`;
 }
 
+/** The logo, reduced to what survives at label size: hexagon, C, three nodes. */
+function logoMark(x, y, w) {
+  const s = w / 64;
+  return `<g transform="translate(${x} ${y}) scale(${s})">
+    <path d="M32 4 56 18v28L32 60 8 46V18Z" fill="none" stroke="#1252e0" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M34 20a12 12 0 1 0 0 24v-6a6 6 0 1 1 0-12Z" fill="#111a29"/>
+    <g stroke="#7f93ad" stroke-width="2.6" stroke-linecap="round">
+      <path d="M41 21.5 46 28"/><path d="M46 28 40.5 35"/><path d="M40.5 35 46 42"/>
+    </g>
+    <circle cx="41" cy="21" r="3.4" fill="#141c28"/>
+    <circle cx="46" cy="28" r="3" fill="#1252e0"/>
+    <circle cx="40.5" cy="35" r="3.2" fill="#1252e0"/>
+    <circle cx="46" cy="42.5" r="3.6" fill="#1252e0"/>
+  </g>`;
+}
+
 /**
  * The label block, drawn once at a fixed 60×60 and reused at scale by both the
- * vial and the carton so the set reads as one system.
+ * vial and the carton so the set reads as one system. Layout follows the
+ * printed label: logo centred at the top, product text centred beneath it.
  */
 function labelBlock(accent, lines, sub) {
   const W = 60;
   const H = 60;
-  const pad = 5;
+  const pad = 4;
   const avail = W - pad * 2;
-  const nameSize = lines.some((l) => l.length > 11) ? 6.6 : 7.6;
-  const nameTop = 24;
-  const step = nameSize + 2.2;
-  const sizeY = nameTop + (lines.length - 1) * step + step + 0.5;
+  const nameSize = lines.some((l) => l.length > 11) ? 5.8 : 6.8;
+  const nameTop = 31;
+  const step = nameSize + 1.8;
+  const sizeY = nameTop + (lines.length - 1) * step + step + 0.4;
 
   return `<g>
-    <rect width="${W}" height="${H}" rx="3" fill="var(--vial-label,#ffffff)" fill-opacity="var(--vial-label-op,.98)" stroke="var(--vial-stroke,rgba(15,23,42,.18))" stroke-width=".6"/>
-    <rect width="${W}" height="3.4" fill="${accent}"/>
-    <rect y="${H - 7}" width="${W}" height="7" fill="${accent}"/>
-    ${text(pad, 15, SITE.name.toUpperCase(), { size: 5.4, weight: 700, fill: accent, spacing: '.18', avail })}
+    <rect width="${W}" height="${H}" rx="2" fill="var(--vial-label,#ffffff)" fill-opacity="var(--vial-label-op,.98)" stroke="var(--vial-stroke,rgba(15,23,42,.18))" stroke-width=".6"/>
+    ${logoMark(W / 2 - 7, 5, 14)}
     ${lines
       .map((line, i) =>
-        text(pad, nameTop + i * step, line, {
+        text(W / 2, nameTop + i * step, line, {
           size: nameSize,
           weight: 700,
           fill: 'var(--vial-label-ink,#0f172a)',
+          anchor: 'middle',
           avail,
         }),
       )
       .join('')}
-    ${text(pad, sizeY, sub, { size: 6.6, weight: 600, fill: 'var(--vial-label-sub,#475569)', avail })}
-    ${text(pad, sizeY + 7, 'LYOPHILISED', { size: 4.8, weight: 500, fill: 'var(--vial-label-fine,#64748b)', spacing: '.14', avail })}
-    ${text(W / 2, H - 2.2, 'RESEARCH USE ONLY', { size: 4.4, weight: 700, fill: '#ffffff', spacing: '.12', anchor: 'middle', avail: W - 4 })}
+    ${text(W / 2, sizeY, sub, { size: 5.6, weight: 600, fill: 'var(--vial-label-sub,#475569)', anchor: 'middle', avail })}
+    ${text(W / 2, sizeY + 5.6, 'RESEARCH USE ONLY', { size: 3.9, weight: 700, fill: 'var(--vial-label-fine,#94a3b8)', spacing: '.1', anchor: 'middle', avail })}
+    <rect x="${W / 2 - 9}" y="${H - 5}" width="18" height="1.6" rx=".8" fill="${accent}" opacity=".85"/>
   </g>`;
 }
 
@@ -209,20 +225,22 @@ function drawnVial(product, size, opts = {}) {
 
 
 /* ── Photographic product art ──────────────────────────────────────────────
-   Every product is the same photographed vial with our own label composited
-   over it, so the catalogue stays consistent and a new product needs no new
-   photography. The label geometry below is measured against PHOTO as a
-   percentage of its square frame — retune these four numbers if the photograph
-   is ever reshot or recropped.
+   Every product is the same photographed vial, whose label already carries the
+   logo; only the per-product text is composited on. LABEL is that text zone,
+   measured against PHOTO as a percentage of its square frame and sitting below
+   the printed logo — retune these four numbers if the photograph is reshot or
+   recropped, and nothing else changes.
 
-   PHOTO is empty until the photograph is committed — an empty value renders
-   the drawn vial alone rather than pointing every page at a 404. Set it to the
-   file's path and the whole catalogue switches over at once. If the file is
-   set but fails to load, the <img> fires onerror, the container flips to
-   .no-photo and the drawn vial takes over again. */
+   LABEL was measured off the photograph itself, not eyeballed: the printed
+   logo occupies y 47.4–55.8% of the frame and the clear label runs to y 81.9%,
+   so the text sits from 57% down. If the photograph is reshaped, re-measure
+   rather than nudging these by hand.
 
-const PHOTO = ''; // e.g. 'assets/img/vial-base.jpg'
-const LABEL = { left: 30.5, top: 44, width: 39, height: 37 };
+   If the file fails to load, the <img> fires onerror, the container flips to
+   .no-photo and the drawn vial takes over. */
+
+const PHOTO = 'assets/img/vial-base.jpg';
+const LABEL = { left: 32, top: 57, width: 36, height: 22 };
 
 /**
  * Product art: the vial photograph with our label on it.
@@ -238,14 +256,22 @@ export function vialArt(product, size, opts = {}) {
   const name = product.name.replace(/\s*\(.*\)$/, '');
   const isSupply = product.category === 'supplies';
 
+  // The photograph's label already carries the logo, so the overlay is text
+  // only. At thumbnail size that text is sub-pixel mush, so it is dropped.
   const label = opts.compact
-    ? `<span class="vial-stripe"></span>`
-    : `<span class="vial-brand"><b>CRYPTO</b>PEPTIDES</span>
-       <span class="vial-name">${esc(name)}</span>
+    ? ''
+    : `<span class="vial-name">${esc(name)}</span>
        <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
        <span class="vial-ruo">RESEARCH USE ONLY</span>`;
 
-  if (!PHOTO) {
+  // The photograph is of a vial, so it stands in only for things that come in
+  // one. Capsules, solutions and consumables (syringes, pads, the storage case)
+  // keep the drawn carton — dressing a box of syringes as a peptide vial would
+  // misrepresent what arrives.
+  const isVial = !(product.category === 'supplies' || product.form === 'capsules' || product.form === 'oral')
+    || /water/.test(product.slug);
+
+  if (!PHOTO || !isVial) {
     return `<div class="vial no-photo" style="--cat-accent:${accent}">
       <span class="vial-fallback">${drawnVial(product, size, opts)}</span>
     </div>`;
@@ -254,7 +280,7 @@ export function vialArt(product, size, opts = {}) {
   return `<div class="vial${opts.compact ? ' is-compact' : ''}" style="--cat-accent:${accent}">
     <img class="vial-photo" src="${PHOTO}" alt="" loading="lazy" decoding="async"
          onerror="this.closest('.vial').classList.add('no-photo')" />
-    <span class="vial-label" style="left:${LABEL.left}%;top:${LABEL.top}%;width:${LABEL.width}%;height:${LABEL.height}%">${label}</span>
+    ${label ? `<span class="vial-label" style="left:${LABEL.left}%;top:${LABEL.top}%;width:${LABEL.width}%;height:${LABEL.height}%">${label}</span>` : ''}
     <span class="vial-fallback">${drawnVial(product, size, opts)}</span>
   </div>`;
 }
