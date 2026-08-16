@@ -18,7 +18,7 @@ if (heroArt) {
   heroArt.innerHTML = heroPicks
     .map(
       (p) => `<a class="card-mini" href="product.html?p=${p.slug}">
-        ${vialArt(p)}
+        ${vialArt(p, null, { card: true })}
         <b>${esc(p.name)}</b>
         <span>from ${money(p.minPrice)}</span>
       </a>`,

@@ -101,6 +101,10 @@ export function addToCart(variantId, qty = 1, { silent = false } = {}) {
   persist();
   if (silent) return;
   const { product, variant } = getVariant(variantId);
+  if (window.matchMedia('(max-width: 860px)').matches) {
+    openDrawer();
+    return;
+  }
   toast(`Added ${product.name} · ${variant.size}`, 'View cart', openDrawer);
 }
 
@@ -179,7 +183,7 @@ export function productCard(product) {
     : esc(product.spec || product.categoryName);
   return `<article class="product-card">
     <a class="pc-media" href="${href}" tabindex="-1" aria-hidden="true">
-      ${vialArt(product)}
+      ${vialArt(product, null, { card: true })}
       <div class="pc-badges">${badges.join('')}</div>
     </a>
     <div class="pc-body">
@@ -402,7 +406,7 @@ function renderDrawer() {
   body.innerHTML = lines
     .map(
       (l) => `<div class="line-item">
-        <div class="thumb" aria-hidden="true">${vialArt(l.product, l.variant.size)}</div>
+        <div class="thumb" aria-hidden="true">${vialArt(l.product, l.variant.size, { card: true })}</div>
         <div>
           <b>${esc(l.product.name)}</b>
           <span class="sz">${esc(l.variant.size)}</span>

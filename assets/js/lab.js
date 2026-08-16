@@ -38,8 +38,82 @@ export const METHODS = ['RP-HPLC-UV', 'LC-MS (ESI-TOF)', 'Karl Fischer titration
  * A bare string is accepted as shorthand for `{ file }`, in which case the
  * laboratory stays unnamed. Nothing may be filled in here speculatively: every
  * field is copied off the certificate itself.
+ *
+ * WHAT IS REGISTERED BELOW IS FIXTURE DATA, NOT TEST RESULTS. Eight placeholder
+ * certificates were generated to show what the storefront does once a real
+ * report exists: the lot page serving a document, the counters moving off zero,
+ * the filter appearing. Every one names "Example Analytical (test fixture)",
+ * carries a stamp across the page and states inside itself that no sample was
+ * submitted and no analysis performed. Delete this block and the PDFs in
+ * `coa/` the day real certificates arrive — the real ones drop straight into
+ * the same shape.
  */
-export const REPORTS = {};
+export const REPORTS = {
+  'CP-2607-RETATRIDE-51': {
+    file: 'coa/CP-2607-RETATRIDE-51.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-880927',
+    tested: '2026-07-23',
+    purity: '98.470%',
+  },
+  'CP-2511-TIRZEPIDE-34': {
+    file: 'coa/CP-2511-TIRZEPIDE-34.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-792982',
+    tested: '2025-11-16',
+    purity: '99.420%',
+  },
+  'CP-2608-SEMAGLIDE-97': {
+    file: 'coa/CP-2608-SEMAGLIDE-97.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-814317',
+    tested: '2026-08-13',
+    purity: '98.270%',
+  },
+  'CP-2606-BPC157-65': {
+    file: 'coa/CP-2606-BPC157-65.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-805227',
+    tested: '2026-07-09',
+    purity: '99.470%',
+  },
+  'CP-2607-TB500-73': {
+    file: 'coa/CP-2607-TB500-73.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-555812',
+    tested: '2026-07-19',
+    purity: '98.920%',
+  },
+  'CP-2601-GHKCU-20': {
+    file: 'coa/CP-2601-GHKCU-20.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-484087',
+    tested: '2026-01-02',
+    purity: '98.270%',
+  },
+  'CP-2606-IPAMORLIN-22': {
+    file: 'coa/CP-2606-IPAMORLIN-22.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-694837',
+    tested: '2026-07-01',
+    purity: '99.470%',
+  },
+  'CP-2603-EPITHALON-75': {
+    file: 'coa/CP-2603-EPITHALON-75.pdf',
+    lab: 'Example Analytical (test fixture)',
+    location: 'Fixture City',
+    reportId: 'FX-729877',
+    tested: '2026-04-01',
+    purity: '98.970%',
+  },
+};
 
 function normaliseReport(batch, raw) {
   if (!raw) return null;

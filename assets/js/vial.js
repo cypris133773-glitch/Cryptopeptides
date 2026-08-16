@@ -240,15 +240,20 @@ function drawnVial(product, size, opts = {}) {
    .no-photo and the drawn vial takes over. */
 
 const PHOTO = 'assets/img/vial-base.jpg';
+// Cards render the vial at 150–260 CSS px. Decoding the 1200px original 49
+// times is what makes the catalogue crawl on a phone, so listings get a 420px
+// copy and only the product page loads the full one.
+const PHOTO_CARD = 'assets/img/vial-card.jpg';
 const LABEL = { left: 32, top: 57, width: 36, height: 22 };
 
 /**
  * Product art: the vial photograph with our label on it.
  * @param {object} product catalogue entry
  * @param {string} [size]  variant size printed on the label
- * @param {object} [opts]  `{ compact: true }` for thumbnails — label text is
- *                         unreadable below roughly 90px, so only the brand
- *                         stripe is drawn
+ * @param {object} [opts]  `{ card: true }` for listings and thumbnails: the
+ *                         small image, and no composited text — at card width
+ *                         the label type clips mid-word, and the product name
+ *                         is already printed directly beneath the card
  */
 export function vialArt(product, size, opts = {}) {
   const accent = product.accent || '#7c5cff';
@@ -257,8 +262,8 @@ export function vialArt(product, size, opts = {}) {
   const isSupply = product.category === 'supplies';
 
   // The photograph's label already carries the logo, so the overlay is text
-  // only. At thumbnail size that text is sub-pixel mush, so it is dropped.
-  const label = opts.compact
+  // only — and only where there is room for it to be read.
+  const label = opts.card || opts.compact
     ? ''
     : `<span class="vial-name">${esc(name)}</span>
        <span class="vial-sub">${esc(sub)}${isSupply ? '' : ' · lyophilised'}</span>
@@ -277,8 +282,10 @@ export function vialArt(product, size, opts = {}) {
     </div>`;
   }
 
-  return `<div class="vial${opts.compact ? ' is-compact' : ''}" style="--cat-accent:${accent}">
-    <img class="vial-photo" src="${PHOTO}" alt="" loading="lazy" decoding="async"
+  const small = opts.card || opts.compact;
+  return `<div class="vial${small ? ' is-compact' : ''}" style="--cat-accent:${accent}">
+    <img class="vial-photo" src="${small ? PHOTO_CARD : PHOTO}" alt="" width="${small ? 420 : 1200}"
+         height="${small ? 420 : 1200}" loading="lazy" decoding="async"
          onerror="this.closest('.vial').classList.add('no-photo')" />
     ${label ? `<span class="vial-label" style="left:${LABEL.left}%;top:${LABEL.top}%;width:${LABEL.width}%;height:${LABEL.height}%">${label}</span>` : ''}
     <span class="vial-fallback">${drawnVial(product, size, opts)}</span>

@@ -70,7 +70,7 @@ function summaryHTML() {
     ${lines
       .map(
         (l) => `<div class="sum-line">
-          <div class="thumb" aria-hidden="true">${vialArt(l.product, l.variant.size)}</div>
+          <div class="thumb" aria-hidden="true">${vialArt(l.product, l.variant.size, { card: true })}</div>
           <div><b class="small">${esc(l.product.name)}</b><span class="tiny muted">${esc(l.variant.size)} × ${l.qty}</span></div>
           <span class="small">${money(l.lineTotal)}</span>
         </div>`,

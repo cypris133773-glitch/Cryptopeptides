@@ -38,7 +38,11 @@ export const FREE_KIT = {
 export const SITE = {
   name: 'CryptoPeptides',
   short: 'CP',
-  tagline: 'Research-grade peptides, third-party tested, crypto-only checkout.',
+  // Nothing here may assert a test result. `REPORTS` in lab.js is empty, so
+  // "third-party tested" was a present-tense claim with zero certificates
+  // behind it; what the site can actually show is the lot registry. The line
+  // reverts to a testing claim only by way of lab.js, never by editing copy.
+  tagline: 'Research-grade peptides, lot-numbered and traceable, crypto-only checkout.',
   email: 'Cryptopeptides@proton.me',
   freeShippingOver: 150,
   currency: 'USD',
@@ -137,17 +141,231 @@ export const CATEGORIES = [
   { id: 'blends', name: 'Blends & Stacks', blurb: 'Pre-mixed vials and multi-vial research kits.', accent: '#0f766e' },
 ];
 
-// v(size, msrp) — a purchasable variant. `id` is derived in `normalise()`.
-const v = (size, msrp) => ({ size, msrp });
+// v(size, msrp, extra) — a purchasable variant. `id`, `price`, `mg` and
+// `perMg` are all derived in `normalise()`. `extra` carries per-variant data
+// that is not price — currently only `components` on the blends and kits.
+const v = (size, msrp, extra) => ({ size, msrp, ...extra });
 
-/* SAMPLE DATA WARNING — `rating` and `reviews` below.
+/* NO REVIEW DATA LIVES HERE.
  *
- * These figures are placeholder catalogue seed data. No customer review has
- * ever been collected by this store, and nothing here was written by a buyer.
- * Every surface that renders them says so in the UI ("sample data"), and no
- * synthetic review text, reviewer name or "verified buyer" mark is generated
- * anywhere in the codebase. Delete these two fields the moment real, attributed
- * reviews exist — do not top them up with invented ones. */
+ * `rating` and `reviews` seed fields used to sit on all 49 entries. They were
+ * never real: no customer review has ever been collected by this store. They
+ * were deleted rather than left for the next person to wire up, because wiring
+ * them up would manufacture ratings out of nothing. Do not reintroduce either
+ * field, or an `aggregateRating`/`review` node in the JSON-LD, until verified
+ * attributed feedback exists — and then publish it with the order it came from. */
+
+/* Physicochemical reference data, keyed by slug.
+ *
+ * These are published facts about the *molecule*, not measurements of our
+ * material, so they need no certificate and imply none. Every field here is a
+ * value I could state with confidence; where a compound's identity is
+ * ambiguous in the trade (TB-500 is sold both as full Thymosin β-4 and as the
+ * Ac-LKKTETQ fragment) or the figure is not something I can vouch for, the
+ * field — or the whole entry — is simply absent. An eight-row table of true
+ * rows beats a twelve-row table with three invented ones. Add to it only from
+ * a source you have actually checked, and note the source in a comment.
+ *
+ * Deliberately absent: retatrutide, cagrilintide, survodutide, mazdutide,
+ * tb-500, ara-290, igf-1-lr3, follistatin-344, thymalin, and all six blends
+ * (a mixture has no single formula — its components are listed instead). */
+const REFERENCE = {
+  // ── GLP-1 & Metabolic ──
+  semaglutide: { formula: 'C187H291N45O59', mw: '4113.58 g/mol' },
+  tirzepatide: { formula: 'C225H348N48O68', mw: '4813.45 g/mol' },
+
+  // ── Growth hormone secretagogues ──
+  'aod-9604': {
+    sequence: 'YLRIVQCRSVEGSCGF (cyclic, Cys–Cys disulfide bridge)',
+    formula: 'C78H123N23O23S2',
+    mw: '1815.08 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'hgh-fragment-176-191': {
+    // Same residues as AOD-9604; this is the reduced (free-thiol) form, hence
+    // the two-hydrogen difference in formula and mass.
+    sequence: 'YLRIVQCRSVEGSCGF',
+    formula: 'C78H125N23O23S2',
+    mw: '1817.12 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  tesamorelin: {
+    sequence: 'trans-3-hexenoyl-GHRH(1–44) amide',
+    formula: 'C221H366N72O67S',
+    mw: '5135.86 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  sermorelin: {
+    sequence:
+      'Tyr-Ala-Asp-Ala-Ile-Phe-Thr-Asn-Ser-Tyr-Arg-Lys-Val-Leu-Gly-Gln-Leu-Ser-Ala-Arg-Lys-Leu-Leu-Gln-Asp-Ile-Met-Ser-Arg-NH₂ (GHRH 1–29 amide)',
+    formula: 'C149H246N44O42S',
+    mw: '3357.88 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'cjc-1295-no-dac': {
+    sequence:
+      'Tyr-D-Ala-Asp-Ala-Ile-Phe-Thr-Gln-Ser-Tyr-Arg-Lys-Val-Leu-Ala-Gln-Leu-Ser-Ala-Arg-Lys-Leu-Leu-Gln-Asp-Ile-Leu-Ser-Arg-NH₂ (GHRH 1–29 with D-Ala², Gln⁸, Ala¹⁵, Leu²⁷)',
+    formula: 'C152H252N44O42',
+    mw: '3367.95 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'cjc-1295-dac': {
+    sequence: 'Modified GHRH(1–29) as above, plus a Lys³⁰ drug-affinity complex (maleimidopropionyl)',
+    formula: 'C165H269N47O46',
+    mw: '3647.19 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  ipamorelin: {
+    sequence: 'Aib-His-D-2-Nal-D-Phe-Lys-NH₂',
+    formula: 'C38H49N9O5',
+    mw: '711.85 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  hexarelin: {
+    sequence: 'His-D-2-methyl-Trp-Ala-Trp-D-Phe-Lys-NH₂',
+    formula: 'C47H58N12O6',
+    mw: '887.04 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'ghrp-2': {
+    sequence: 'D-Ala-D-2-Nal-Ala-Trp-D-Phe-Lys-NH₂',
+    formula: 'C45H55N9O6',
+    mw: '817.97 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'ghrp-6': {
+    sequence: 'His-D-Trp-Ala-Trp-D-Phe-Lys-NH₂',
+    formula: 'C46H56N12O6',
+    mw: '873.01 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+
+  // ── Healing & recovery ──
+  'bpc-157': {
+    sequence: 'GEPPPGKPADDAGLV',
+    formula: 'C62H98N16O22',
+    mw: '1419.53 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  // TB-500 carries solubility only: the trade sells both full Thymosin β-4 and
+  // the Ac-LKKTETQ active fragment under this name, and this listing does not
+  // say which, so no sequence, formula or mass is asserted for it.
+  'tb-500': { solubility: 'Soluble in sterile or bacteriostatic water' },
+  kpv: {
+    sequence: 'KPV (Lys-Pro-Val)',
+    formula: 'C16H30N4O4',
+    mw: '342.44 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'll-37': {
+    sequence: 'LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES',
+    mw: '4493.26 g/mol',
+  },
+  'thymosin-alpha-1': {
+    sequence: 'Ac-SDAAVDTSSEITTKDLKEKKEVVEEAEN',
+    formula: 'C129H215N33O55',
+    mw: '3108.28 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'ghk-cu': {
+    sequence: 'GHK (Gly-His-Lys), copper(II) complex',
+    formula: 'C14H22CuN6O4',
+    mw: '403.93 g/mol',
+    salt: 'Copper(II) complex',
+    appearance: 'Blue lyophilised powder — the colour is the copper(II) complex',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  vip: {
+    sequence: 'HSDAVFTDNYTRLRKQMAVKKYLNSILN-NH₂',
+    formula: 'C147H238N44O42S',
+    mw: '3325.85 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  larazotide: { sequence: 'GGVLVQPG', mw: '727.85 g/mol (free base)', salt: 'Acetate' },
+
+  // ── Longevity & mitochondrial ──
+  epithalon: {
+    sequence: 'AEDG (Ala-Glu-Asp-Gly)',
+    formula: 'C14H22N4O9',
+    mw: '390.35 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'nad-plus': {
+    formula: 'C21H27N7O14P2',
+    mw: '663.43 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'mots-c': { sequence: 'MRWQEMGYIFYPRKLR', mw: '2174.59 g/mol', solubility: 'Soluble in sterile or bacteriostatic water' },
+  'ss-31': {
+    sequence: 'D-Arg-Dmt-Lys-Phe-NH₂',
+    formula: 'C32H49N9O5',
+    mw: '639.79 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  humanin: { sequence: 'MAPRGFSCLLLLTSEIDLPVKRRA', mw: '2687.19 g/mol' },
+  glutathione: {
+    sequence: 'γ-Glu-Cys-Gly (reduced L-glutathione)',
+    formula: 'C10H17N3O6S',
+    mw: '307.32 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+
+  // ── Aesthetics & vitality ──
+  'melanotan-ii': {
+    sequence: 'Ac-Nle-cyclo[Asp-His-D-Phe-Arg-Trp-Lys]-NH₂',
+    formula: 'C50H69N15O9',
+    mw: '1024.18 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'pt-141': {
+    sequence: 'Ac-Nle-cyclo[Asp-His-D-Phe-Arg-Trp-Lys]-OH',
+    formula: 'C50H68N14O10',
+    mw: '1025.16 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'snap-8': {
+    sequence: 'Ac-Glu-Glu-Met-Gln-Arg-Arg-Ala-Asp-NH₂ (acetyl octapeptide-3)',
+    mw: '1075.18 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  'kisspeptin-10': {
+    sequence: 'YNWNSFGLRF-NH₂',
+    formula: 'C63H83N17O14',
+    mw: '1302.45 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  oxytocin: {
+    sequence: 'CYIQNCPLG-NH₂ (disulfide bridge Cys¹–Cys⁶)',
+    formula: 'C43H66N12O12S2',
+    mw: '1007.19 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+
+  // ── Cognitive & neuro ──
+  selank: {
+    sequence: 'TKPRPGP (Thr-Lys-Pro-Arg-Pro-Gly-Pro)',
+    formula: 'C33H57N11O9',
+    mw: '751.89 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  semax: {
+    sequence: 'MEHFPGP (Met-Glu-His-Phe-Pro-Gly-Pro)',
+    formula: 'C37H51N9O10S',
+    mw: '813.92 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+  dihexa: {
+    sequence: 'N-hexanoyl-Tyr-Ile-(6)-aminohexanoic amide',
+    formula: 'C26H42N4O5',
+    mw: '490.64 g/mol',
+  },
+  dsip: {
+    sequence: 'WAGGDASGE',
+    formula: 'C35H48N10O15',
+    mw: '848.81 g/mol',
+    solubility: 'Soluble in sterile or bacteriostatic water',
+  },
+};
 
 const RAW = [
   // ── GLP-1 & Metabolic ────────────────────────────────────────────────
@@ -166,7 +384,6 @@ const RAW = [
       'Hepatic lipid accumulation research',
     ],
     variants: [v('5mg', 89.99), v('10mg', 149.99), v('15mg', 199.99), v('20mg', 249.99), v('30mg', 349.99)],
-    rating: 4.9, reviews: 412,
   },
   {
     slug: 'tirzepatide',
@@ -183,7 +400,6 @@ const RAW = [
       'Appetite-signalling pathway research',
     ],
     variants: [v('5mg', 74.99), v('10mg', 109.99), v('15mg', 149.99), v('20mg', 189.99), v('30mg', 249.99), v('60mg', 449.99)],
-    rating: 4.9, reviews: 587,
   },
   {
     slug: 'semaglutide',
@@ -195,7 +411,6 @@ const RAW = [
     summary: 'Long-acting GLP-1 receptor agonist with an albumin-binding fatty-acid chain.',
     research: ['GLP-1 receptor binding kinetics', 'Gastric emptying models', 'Cardiometabolic marker research'],
     variants: [v('2mg', 44.99), v('5mg', 69.99), v('10mg', 109.99), v('15mg', 149.99), v('20mg', 189.99)],
-    rating: 4.8, reviews: 631,
   },
   {
     slug: 'cagrilintide',
@@ -206,7 +421,6 @@ const RAW = [
     summary: 'Long-acting amylin analogue studied alongside incretin agonists.',
     research: ['Amylin receptor selectivity', 'Satiety signalling models', 'Combination incretin research'],
     variants: [v('5mg', 99.99), v('10mg', 159.99)],
-    rating: 4.8, reviews: 143,
   },
   {
     slug: 'survodutide',
@@ -218,7 +432,6 @@ const RAW = [
     summary: 'Glucagon/GLP-1 dual agonist under investigation for hepatic and metabolic endpoints.',
     research: ['Glucagon receptor signalling', 'Hepatic steatosis models', 'Thermogenesis research'],
     variants: [v('5mg', 109.99), v('10mg', 179.99)],
-    rating: 4.7, reviews: 61,
   },
   {
     slug: 'mazdutide',
@@ -230,7 +443,6 @@ const RAW = [
     summary: 'GLP-1/glucagon co-agonist derived from oxyntomodulin.',
     research: ['Oxyntomodulin analogue comparison', 'Metabolic rate models', 'Receptor bias assays'],
     variants: [v('5mg', 99.99), v('10mg', 169.99)],
-    rating: 4.7, reviews: 48,
   },
   {
     slug: 'aod-9604',
@@ -241,7 +453,6 @@ const RAW = [
     summary: 'C-terminal hGH fragment (176-191) analogue studied for lipolytic signalling without GH activity.',
     research: ['Adipocyte lipolysis assays', 'Beta-3 adrenergic pathway research', 'Cartilage repair models'],
     variants: [v('5mg', 54.99), v('10mg', 89.99)],
-    rating: 4.6, reviews: 96,
   },
   {
     slug: 'tesamorelin',
@@ -252,7 +463,6 @@ const RAW = [
     summary: 'Stabilised GHRH(1-44) analogue with a strong body-composition literature base.',
     research: ['Visceral adipose tissue models', 'GHRH receptor affinity', 'IGF-1 axis research'],
     variants: [v('5mg', 69.99), v('10mg', 109.99)],
-    rating: 4.8, reviews: 121,
   },
 
   // ── Healing & Recovery ───────────────────────────────────────────────
@@ -266,7 +476,6 @@ const RAW = [
     summary: 'Pentadecapeptide from gastric juice, the single most-studied compound in our recovery line.',
     research: ['Tendon and ligament fibroblast models', 'Gastrointestinal mucosa research', 'Angiogenesis and VEGF signalling'],
     variants: [v('5mg', 39.99), v('10mg', 59.99), v('20mg', 99.99)],
-    rating: 4.9, reviews: 902,
   },
   {
     slug: 'tb-500',
@@ -277,7 +486,6 @@ const RAW = [
     summary: 'Actin-sequestering peptide fragment studied for cell migration and tissue remodelling.',
     research: ['Actin polymerisation assays', 'Cell-migration and wound models', 'Cardiac remodelling research'],
     variants: [v('5mg', 49.99), v('10mg', 79.99)],
-    rating: 4.8, reviews: 458,
   },
   {
     slug: 'kpv',
@@ -288,7 +496,6 @@ const RAW = [
     summary: 'C-terminal α-MSH tripeptide studied for its anti-inflammatory signalling.',
     research: ['NF-κB pathway modulation', 'Colitis and mucosal models', 'Cutaneous inflammation research'],
     variants: [v('10mg', 59.99)],
-    rating: 4.7, reviews: 133,
   },
   {
     slug: 'll-37',
@@ -299,7 +506,6 @@ const RAW = [
     summary: 'Human cathelicidin antimicrobial peptide used widely in innate-immunity work.',
     research: ['Antimicrobial activity assays', 'Innate immune signalling', 'Biofilm disruption research'],
     variants: [v('5mg', 74.99)],
-    rating: 4.6, reviews: 58,
   },
   {
     slug: 'thymosin-alpha-1',
@@ -310,7 +516,6 @@ const RAW = [
     summary: 'Thymic peptide studied extensively in T-cell maturation and immune-modulation models.',
     research: ['T-cell differentiation assays', 'Toll-like receptor signalling', 'Viral-response models'],
     variants: [v('5mg', 69.99), v('10mg', 109.99)],
-    rating: 4.8, reviews: 174,
   },
   {
     slug: 'ghk-cu',
@@ -322,7 +527,6 @@ const RAW = [
     summary: 'Copper tripeptide complex with a deep dermal-remodelling and gene-expression literature.',
     research: ['Collagen and elastin synthesis', 'Gene-expression resetting studies', 'Antioxidant and chelation assays'],
     variants: [v('50mg', 54.99), v('100mg', 89.99)],
-    rating: 4.9, reviews: 388,
   },
   {
     slug: 'ara-290',
@@ -333,7 +537,6 @@ const RAW = [
     summary: 'Non-erythropoietic EPO-derived peptide studied in small-fibre neuropathy models.',
     research: ['Innate repair receptor signalling', 'Neuropathic pain models', 'Metabolic inflammation research'],
     variants: [v('10mg', 89.99)],
-    rating: 4.6, reviews: 44,
   },
   {
     slug: 'vip',
@@ -344,7 +547,6 @@ const RAW = [
     summary: 'Neuropeptide studied in mucosal immunity, circadian and vasodilatory research.',
     research: ['VPAC1/VPAC2 receptor assays', 'Mucosal immune models', 'Circadian signalling research'],
     variants: [v('5mg', 84.99)],
-    rating: 4.5, reviews: 39,
   },
   {
     slug: 'larazotide',
@@ -354,7 +556,6 @@ const RAW = [
     summary: 'Tight-junction regulator peptide used in intestinal permeability research.',
     research: ['Zonulin antagonism assays', 'Epithelial barrier integrity', 'Coeliac disease models'],
     variants: [v('5mg', 89.99)],
-    rating: 4.5, reviews: 31,
   },
 
   // ── Growth Hormone Secretagogues ─────────────────────────────────────
@@ -366,7 +567,6 @@ const RAW = [
     summary: 'Tetra-substituted GHRH(1-29) analogue with a short pulse profile.',
     research: ['GHRH receptor binding', 'Pulsatile GH release models', 'Synergy studies with ghrelin mimetics'],
     variants: [v('5mg', 44.99), v('10mg', 74.99)],
-    rating: 4.8, reviews: 216,
   },
   {
     slug: 'cjc-1295-dac',
@@ -377,7 +577,6 @@ const RAW = [
     summary: 'Drug-affinity-complex variant with an extended circulating half-life.',
     research: ['Albumin-binding pharmacokinetics', 'Sustained GH bleed models', 'IGF-1 response research'],
     variants: [v('5mg', 59.99), v('10mg', 99.99)],
-    rating: 4.7, reviews: 158,
   },
   {
     slug: 'ipamorelin',
@@ -389,7 +588,6 @@ const RAW = [
     summary: 'Selective ghrelin receptor agonist with minimal cortisol or prolactin cross-talk in the literature.',
     research: ['GHS-R1a selectivity assays', 'GH pulse amplitude models', 'Bone-density research'],
     variants: [v('5mg', 39.99), v('10mg', 64.99)],
-    rating: 4.9, reviews: 341,
   },
   {
     slug: 'sermorelin',
@@ -400,7 +598,6 @@ const RAW = [
     summary: 'GHRH(1-29) fragment, the reference compound for GHRH-axis research.',
     research: ['GHRH receptor agonism', 'Sleep-architecture models', 'Age-related GH decline research'],
     variants: [v('5mg', 49.99), v('10mg', 79.99)],
-    rating: 4.7, reviews: 187,
   },
   {
     slug: 'hexarelin',
@@ -411,7 +608,6 @@ const RAW = [
     summary: 'Potent hexapeptide ghrelin mimetic with additional cardiac-tissue literature.',
     research: ['CD36 receptor signalling', 'Cardioprotection models', 'GH secretagogue potency assays'],
     variants: [v('5mg', 54.99)],
-    rating: 4.6, reviews: 79,
   },
   {
     slug: 'ghrp-2',
@@ -422,7 +618,6 @@ const RAW = [
     summary: 'Second-generation growth hormone releasing peptide.',
     research: ['GHS-R binding assays', 'Appetite signalling models', 'GH release comparison studies'],
     variants: [v('5mg', 39.99), v('10mg', 64.99)],
-    rating: 4.6, reviews: 112,
   },
   {
     slug: 'ghrp-6',
@@ -433,7 +628,6 @@ const RAW = [
     summary: 'Classic hexapeptide secretagogue with pronounced ghrelin-pathway activity.',
     research: ['Ghrelin receptor agonism', 'Gastric motility research', 'Comparative GH release'],
     variants: [v('5mg', 39.99), v('10mg', 64.99)],
-    rating: 4.5, reviews: 98,
   },
   {
     slug: 'hgh-fragment-176-191',
@@ -444,7 +638,6 @@ const RAW = [
     summary: 'Lipolytic C-terminal fragment of human growth hormone.',
     research: ['Adipose lipolysis assays', 'Non-GH-mediated fat metabolism', 'Comparative fragment studies'],
     variants: [v('5mg', 54.99), v('10mg', 89.99)],
-    rating: 4.6, reviews: 129,
   },
   {
     slug: 'igf-1-lr3',
@@ -455,7 +648,6 @@ const RAW = [
     summary: 'Long-arg3 analogue of IGF-1 with reduced binding-protein affinity.',
     research: ['IGF-1 receptor signalling', 'Myoblast proliferation assays', 'Binding-protein interaction studies'],
     variants: [v('1mg', 89.99)],
-    rating: 4.6, reviews: 87,
   },
   {
     slug: 'follistatin-344',
@@ -465,7 +657,6 @@ const RAW = [
     summary: 'Myostatin-binding glycoprotein fragment used in muscle-signalling research.',
     research: ['Myostatin inhibition assays', 'Activin signalling', 'Muscle hypertrophy models'],
     variants: [v('1mg', 129.99)],
-    rating: 4.5, reviews: 41,
   },
 
   // ── Longevity & Mitochondrial ────────────────────────────────────────
@@ -479,7 +670,6 @@ const RAW = [
     summary: 'Pineal tetrapeptide studied for telomerase expression and circadian regulation.',
     research: ['Telomerase activity assays', 'Melatonin rhythm models', 'Cellular senescence research'],
     variants: [v('10mg', 49.99), v('50mg', 129.99)],
-    rating: 4.8, reviews: 231,
   },
   {
     slug: 'nad-plus',
@@ -491,7 +681,6 @@ const RAW = [
     summary: 'Nicotinamide adenine dinucleotide, lyophilised and sealed under nitrogen.',
     research: ['Sirtuin activation studies', 'Mitochondrial respiration assays', 'DNA-repair pathway research'],
     variants: [v('500mg', 89.99), v('1000mg', 149.99)],
-    rating: 4.8, reviews: 296,
   },
   {
     slug: 'mots-c',
@@ -502,7 +691,6 @@ const RAW = [
     summary: 'Mitochondrial-derived peptide studied in metabolic homeostasis and exercise models.',
     research: ['AMPK pathway activation', 'Insulin sensitivity models', 'Exercise-capacity research'],
     variants: [v('10mg', 79.99)],
-    rating: 4.7, reviews: 118,
   },
   {
     slug: 'ss-31',
@@ -513,7 +701,6 @@ const RAW = [
     summary: 'Cardiolipin-targeting tetrapeptide concentrated at the inner mitochondrial membrane.',
     research: ['Cardiolipin binding assays', 'ROS production models', 'Mitochondrial cristae morphology'],
     variants: [v('10mg', 89.99), v('50mg', 229.99)],
-    rating: 4.7, reviews: 96,
   },
   {
     slug: 'humanin',
@@ -523,7 +710,6 @@ const RAW = [
     summary: 'Mitochondrial-derived peptide studied in cytoprotection and neurodegeneration models.',
     research: ['Bax-mediated apoptosis assays', 'Neuroprotection models', 'Metabolic ageing research'],
     variants: [v('10mg', 89.99)],
-    rating: 4.5, reviews: 37,
   },
   {
     slug: 'thymalin',
@@ -533,7 +719,6 @@ const RAW = [
     summary: 'Thymic peptide complex studied for immune-system restoration in ageing models.',
     research: ['Thymic involution models', 'Lymphocyte population studies', 'Geroprotection research'],
     variants: [v('10mg', 69.99)],
-    rating: 4.6, reviews: 54,
   },
   {
     slug: 'glutathione',
@@ -544,7 +729,6 @@ const RAW = [
     summary: 'Reduced L-glutathione, lyophilised for antioxidant and redox research.',
     research: ['Redox balance assays', 'Phase-II detoxification models', 'Oxidative stress research'],
     variants: [v('600mg', 49.99), v('1500mg', 79.99)],
-    rating: 4.7, reviews: 142,
   },
 
   // ── Aesthetics & Vitality ────────────────────────────────────────────
@@ -558,7 +742,6 @@ const RAW = [
     summary: 'Cyclic melanocortin agonist, the reference compound for melanogenesis research.',
     research: ['MC1R/MC4R receptor assays', 'Melanogenesis models', 'Comparative melanocortin studies'],
     variants: [v('10mg', 49.99)],
-    rating: 4.7, reviews: 274,
   },
   {
     slug: 'pt-141',
@@ -569,7 +752,6 @@ const RAW = [
     summary: 'Melanocortin receptor agonist and Melanotan II metabolite.',
     research: ['MC4R signalling assays', 'Central arousal pathway models', 'Melanocortin selectivity studies'],
     variants: [v('10mg', 59.99)],
-    rating: 4.7, reviews: 189,
   },
   {
     slug: 'snap-8',
@@ -580,7 +762,6 @@ const RAW = [
     summary: 'Octapeptide studied as a topical SNARE-complex modulator in dermal research.',
     research: ['SNARE complex assays', 'Expression-line dermal models', 'Topical delivery research'],
     variants: [v('10mg', 54.99)],
-    rating: 4.5, reviews: 63,
   },
   {
     slug: 'kisspeptin-10',
@@ -591,7 +772,6 @@ const RAW = [
     summary: 'Decapeptide studied as an upstream regulator of the reproductive axis.',
     research: ['GPR54 receptor assays', 'GnRH pulse generator models', 'Reproductive endocrinology research'],
     variants: [v('5mg', 69.99), v('10mg', 109.99)],
-    rating: 4.6, reviews: 71,
   },
   {
     slug: 'oxytocin',
@@ -602,7 +782,6 @@ const RAW = [
     summary: 'Nonapeptide hormone widely used in social-behaviour and receptor research.',
     research: ['Oxytocin receptor binding', 'Social-behaviour models', 'Smooth-muscle contraction assays'],
     variants: [v('10mg', 59.99)],
-    rating: 4.5, reviews: 66,
   },
 
   // ── Cognitive & Neuro ────────────────────────────────────────────────
@@ -615,7 +794,6 @@ const RAW = [
     summary: 'Tuftsin-derived heptapeptide studied for anxiolytic and immunomodulatory signalling.',
     research: ['GABAergic modulation', 'BDNF expression assays', 'Stress-response models'],
     variants: [v('10mg', 54.99)],
-    rating: 4.6, reviews: 108,
   },
   {
     slug: 'semax',
@@ -626,7 +804,6 @@ const RAW = [
     summary: 'ACTH(4-10) analogue used in neurotrophic and cognition research.',
     research: ['BDNF and NGF expression', 'Ischaemia neuroprotection models', 'Attention and memory research'],
     variants: [v('10mg', 59.99), v('30mg', 139.99)],
-    rating: 4.7, reviews: 124,
   },
   {
     slug: 'dihexa',
@@ -637,7 +814,6 @@ const RAW = [
     summary: 'Angiotensin IV analogue studied for hepatocyte growth factor potentiation.',
     research: ['HGF/c-Met signalling', 'Synaptogenesis assays', 'Blood-brain-barrier permeability research'],
     variants: [v('5mg', 129.99)],
-    rating: 4.5, reviews: 42,
   },
   {
     slug: 'dsip',
@@ -648,7 +824,6 @@ const RAW = [
     summary: 'Delta sleep-inducing peptide, used in sleep-architecture and stress research.',
     research: ['Delta-wave EEG models', 'Corticotropin regulation', 'Circadian entrainment research'],
     variants: [v('5mg', 44.99), v('10mg', 74.99)],
-    rating: 4.5, reviews: 88,
   },
 
   // ── Blends & Stacks ──────────────────────────────────────────────────
@@ -660,8 +835,10 @@ const RAW = [
     badges: ['bestseller'],
     summary: 'Pre-mixed recovery blend in a single vial — even split between both peptides.',
     research: ['Combined tissue-repair models', 'Angiogenesis plus cell migration', 'Comparative single vs. blend studies'],
-    variants: [v('10mg (5/5)', 89.99), v('20mg (10/10)', 149.99)],
-    rating: 4.9, reviews: 327,
+    variants: [
+      v('10mg (5/5)', 89.99, { components: [['bpc-157', '5mg'], ['tb-500', '5mg']] }),
+      v('20mg (10/10)', 149.99, { components: [['bpc-157', '10mg'], ['tb-500', '10mg']] }),
+    ],
   },
   {
     slug: 'cjc-ipamorelin-blend',
@@ -669,10 +846,14 @@ const RAW = [
     category: 'blends',
     purity: '99.3%',
     badges: ['bestseller'],
+    // No `components` here on purpose. The catalogue sells CJC-1295 in two
+    // forms — with DAC and no DAC (Mod GRF 1-29), $8.28 apart at 5 mg — and
+    // this listing does not say which is in the vial. A component breakdown
+    // would have to pick one, which is a claim about what ships. It stays
+    // absent until the listing itself states the form.
     summary: 'The classic GHRH + ghrelin-mimetic pairing, pre-mixed and lyophilised together.',
     research: ['Synergistic GH pulse models', 'Receptor co-stimulation assays', 'IGF-1 response research'],
     variants: [v('10mg (5/5)', 79.99), v('20mg (10/10)', 139.99)],
-    rating: 4.8, reviews: 252,
   },
   {
     slug: 'reta-cagri-stack',
@@ -682,8 +863,7 @@ const RAW = [
     badges: ['new'],
     summary: 'Two-vial metabolic research kit: Retatrutide 10mg and Cagrilintide 10mg.',
     research: ['Incretin plus amylin co-agonism', 'Combination satiety models', 'Comparative metabolic endpoints'],
-    variants: [v('10mg + 10mg', 259.99)],
-    rating: 4.8, reviews: 63,
+    variants: [v('10mg + 10mg', 259.99, { components: [['retatrutide', '10mg'], ['cagrilintide', '10mg']] })],
   },
   {
     slug: 'tirz-cagri-stack',
@@ -692,8 +872,7 @@ const RAW = [
     purity: '99.2%',
     summary: 'Two-vial kit pairing our most-requested incretin with a long-acting amylin analogue.',
     research: ['Dual-pathway metabolic models', 'Receptor occupancy studies', 'Body-composition research'],
-    variants: [v('10mg + 10mg', 219.99)],
-    rating: 4.7, reviews: 51,
+    variants: [v('10mg + 10mg', 219.99, { components: [['tirzepatide', '10mg'], ['cagrilintide', '10mg']] })],
   },
   {
     slug: 'glow-stack',
@@ -703,8 +882,11 @@ const RAW = [
     badges: ['bestseller'],
     summary: 'Three-vial dermal research kit: GHK-Cu 50mg, BPC-157 10mg and TB-500 10mg.',
     research: ['Dermal remodelling models', 'Collagen synthesis assays', 'Combined repair-pathway research'],
-    variants: [v('3-vial kit', 149.99)],
-    rating: 4.9, reviews: 178,
+    variants: [
+      v('3-vial kit', 149.99, {
+        components: [['ghk-cu', '50mg'], ['bpc-157', '10mg'], ['tb-500', '10mg']],
+      }),
+    ],
   },
   {
     slug: 'repair-stack',
@@ -713,8 +895,11 @@ const RAW = [
     purity: '99.4%',
     summary: 'Three-vial recovery kit: BPC-157 10mg, TB-500 10mg and KPV 10mg.',
     research: ['Multi-pathway tissue repair', 'Inflammatory signalling models', 'Gut-barrier research'],
-    variants: [v('3-vial kit', 159.99)],
-    rating: 4.8, reviews: 141,
+    variants: [
+      v('3-vial kit', 159.99, {
+        components: [['bpc-157', '10mg'], ['tb-500', '10mg'], ['kpv', '10mg']],
+      }),
+    ],
   },
 
 ];

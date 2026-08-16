@@ -1127,3 +1127,34 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 .offer-card h2 { font-size: var(--fs-lg); margin: 0; }
 .offer-card p { margin: 0; }
 .offer-card .btn { margin-top: auto; }
+
+/* ── Mobile weight ────────────────────────────────────────────────────────
+   Three things made the catalogue crawl on a phone: 49 full-size images (now
+   a 420px copy), 49 container-query contexts driving cqw type (now only where
+   the label is actually drawn), and a blurred backdrop behind a sticky header,
+   which forces the compositor to re-blur on every scroll frame. */
+.vial.is-compact { container-type: normal; }
+
+@media (max-width: 860px) {
+  .site-header { backdrop-filter: none; background: var(--bg); }
+  /* Cards below the fold are not laid out until they are near the viewport. */
+  .product-card { content-visibility: auto; contain-intrinsic-size: 340px; }
+}
+
+/* The confirmation cannot land underneath the chat launcher, which is exactly
+   where it was on a phone — the add looked like it had done nothing. */
+.toast-host { bottom: 84px; }
+@media (min-width: 861px) { .toast-host { bottom: 24px; } }
+
+/* ── Email on the home page ───────────────────────────────────────────── */
+.contact-band {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--sp-4); padding: var(--sp-4) var(--sp-6);
+  border: 1px solid var(--line); background: var(--bg-soft);
+}
+.contact-band b { display: block; font-size: var(--fs-md); }
+.contact-band a.mail {
+  font-family: var(--font-mono); font-size: var(--fs-md); font-weight: var(--fw-sub);
+  color: var(--violet); text-decoration: underline; text-underline-offset: 3px; word-break: break-all;
+}
+[data-theme='dark'] .contact-band a.mail { color: var(--brand-lit); }

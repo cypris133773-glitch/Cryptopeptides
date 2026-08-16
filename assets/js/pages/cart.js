@@ -52,7 +52,7 @@ function render() {
       ${lines
         .map(
           (l) => `<div class="line-item" style="grid-template-columns:82px 1fr auto">
-            <a class="thumb" href="product.html?p=${l.product.slug}">${vialArt(l.product, l.variant.size)}</a>
+            <a class="thumb" href="product.html?p=${l.product.slug}">${vialArt(l.product, l.variant.size, { card: true })}</a>
             <div>
               <a href="product.html?p=${l.product.slug}"><b>${esc(l.product.name)}</b></a>
               <span class="sz">${esc(l.variant.size)}${l.product.purity ? ` · ${esc(l.product.purity)} target purity` : ''}</span>
