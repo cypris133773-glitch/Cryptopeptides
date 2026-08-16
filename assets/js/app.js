@@ -1,10 +1,10 @@
 // Shared shell: header, footer, cart state, drawer, toasts, theme, age gate.
-import { SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, shippingCost, shippingZone } from './catalog.js';
+import { SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone } from './catalog.js';
 import { vialSVG } from './vial.js';
 import { publishedCount } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
 
-export { money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, shippingCost, shippingZone };
+export { money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone };
 
 const CART_KEY = 'cp_cart_v1';
 const THEME_KEY = 'cp_theme';
@@ -147,7 +147,7 @@ export function productCard(product) {
   const badges = [];
   if (product.badges.includes('bestseller')) badges.push('<span class="badge best">Popular</span>');
   if (product.badges.includes('new')) badges.push('<span class="badge new">New</span>');
-  badges.push(`<span class="badge sale">−${Math.round(DISCOUNT * 100)}%</span>`);
+  badges.push(`<span class="badge sale">−${DISCOUNT_PCT}%</span>`);
   const from = product.variants.length > 1 ? '<small>from </small>' : '';
   const wasPrice = product.variants.find((v) => v.price === product.minPrice).msrp;
   const href = `product.html?p=${encodeURIComponent(product.slug)}`;
@@ -192,7 +192,7 @@ const NAV = [
 const announcements = () => {
   const published = publishedCount();
   return [
-    `${Math.round(DISCOUNT * 100)}% off every vial — discount already applied to the prices you see`,
+    `${DISCOUNT_PCT}% off every vial — discount already applied to the prices you see`,
     `Free tracked shipping over ${money(SITE.freeShippingOver)} to most destinations`,
     'Crypto-only checkout · BTC · SOL · ETH',
     published
@@ -371,7 +371,7 @@ function renderDrawer() {
   if (!lines.length) {
     body.innerHTML = `<div class="empty" style="margin-top:24px">
       <p><strong>Your cart is empty</strong></p>
-      <p class="small muted">Every vial is already ${Math.round(DISCOUNT * 100)}% below list price.</p>
+      <p class="small muted">Every vial is already ${DISCOUNT_PCT}% below list price.</p>
       <a class="btn btn-primary" href="shop.html">Browse catalogue</a>
     </div>`;
     foot.innerHTML = '';

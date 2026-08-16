@@ -2,7 +2,7 @@ import {
   initShell, cartTotals, clearCart, money, $, $$, esc, toast, SITE, SHIPPING, shippingZone,
   saveOrder, onCartChange,
 } from '../app.js';
-import { CRYPTO } from '../catalog.js';
+import { CRYPTO, DISCOUNT_PCT } from '../catalog.js';
 import { vialSVG } from '../vial.js';
 import { safeSession, readJSON, writeJSON } from '../storage.js';
 
@@ -77,7 +77,7 @@ function summaryHTML() {
       )
       .join('')}
     <div class="summary-row" style="margin-top:8px"><span>Items (${count})</span><span>${money(subtotal + saved)}</span></div>
-    <div class="summary-row ok-text"><span>Site-wide 15% discount</span><span>−${money(saved)}</span></div>
+    <div class="summary-row ok-text"><span>Site-wide ${DISCOUNT_PCT}% discount</span><span>−${money(saved)}</span></div>
     <div class="summary-row"><span>Shipping — ${esc(zone.label)}</span><span>${shipping ? money(shipping) : 'Free'}</span></div>
     <div class="summary-row total"><span>Total</span><span>${money(total)}</span></div>
     <p class="tiny muted" style="margin-top:10px">

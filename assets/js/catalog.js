@@ -1,9 +1,20 @@
 // Product catalogue for CryptoPeptides.
 //
-// Every price in the store is derived from `msrp` by a single site-wide
-// discount, so the storefront can never drift out of sync with the sticker
-// price shown next to it.
-export const DISCOUNT = 0.15;
+// Every price in the store is derived from `msrp` by the site-wide discount
+// below, so the storefront can never drift out of sync with the sticker price
+// shown next to it.
+//
+// The cuts are listed in the order they were made and applied in sequence, so
+// a further reduction is a line added here rather than a rewrite of the
+// numbers: 15% off list, then a further 35% off that.
+export const DISCOUNT_STAGES = [0.15, 0.35];
+
+/** Combined discount off list — 0.4475, i.e. list x 0.5525. */
+export const DISCOUNT = 1 - DISCOUNT_STAGES.reduce((factor, cut) => factor * (1 - cut), 1);
+
+/** The figure the site advertises. Floored, never rounded up: a price must
+ *  never be less discounted than the number next to it claims. */
+export const DISCOUNT_PCT = Math.floor(DISCOUNT * 100);
 
 export const SITE = {
   name: 'CryptoPeptides',
@@ -799,7 +810,8 @@ const RAW = [
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-/** Sale price for an MSRP — the single place the 15% cut is applied. */
+/** Sale price for an MSRP — the single place the cuts are applied. Rounded
+ *  once at the end, so stacking stages cannot compound a rounding error. */
 export const salePrice = (msrp) => round2(msrp * (1 - DISCOUNT));
 
 function normalise(p) {

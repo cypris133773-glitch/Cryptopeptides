@@ -1,5 +1,6 @@
 import {
-  initShell, cartTotals, setQty, removeFromCart, getCart, onCartChange, money, $, esc, SITE, PRODUCTS, productCard,
+  initShell, cartTotals, setQty, removeFromCart, getCart, onCartChange, money, $, esc, SITE, PRODUCTS,
+  productCard, DISCOUNT_PCT,
 } from '../app.js';
 import { vialSVG } from '../vial.js';
 
@@ -13,7 +14,7 @@ function render() {
   if (!lines.length) {
     root.innerHTML = `<div class="empty" style="margin-top:24px">
       <h2>Your cart is empty</h2>
-      <p class="muted">Every vial in the catalogue is already 15% below list price.</p>
+      <p class="muted">Every vial in the catalogue is already ${DISCOUNT_PCT}% below list price.</p>
       <a class="btn btn-primary" href="shop.html">Browse the catalogue</a>
     </div>
     <section class="section-sm">
@@ -64,7 +65,7 @@ function render() {
     <aside class="card sticky-summary">
       <h2>Order summary</h2>
       <div class="summary-row"><span>Items (${count}) at list price</span><span>${money(subtotal + saved)}</span></div>
-      <div class="summary-row ok-text"><span>Site-wide 15% discount</span><span>−${money(saved)}</span></div>
+      <div class="summary-row ok-text"><span>Site-wide ${DISCOUNT_PCT}% discount</span><span>−${money(saved)}</span></div>
       <div class="summary-row"><span>Shipping</span><span>calculated at checkout</span></div>
       <div class="summary-row total"><span>Subtotal</span><span>${money(subtotal)}</span></div>
       <a class="btn btn-primary btn-block btn-lg" style="margin-top:14px" href="checkout.html">Checkout with crypto</a>

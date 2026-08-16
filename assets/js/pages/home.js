@@ -1,4 +1,4 @@
-import { initShell, PRODUCTS, CATEGORIES, productCard, $, esc, money, DISCOUNT } from '../app.js';
+import { initShell, PRODUCTS, CATEGORIES, productCard, $, esc, money, DISCOUNT_PCT } from '../app.js';
 import { vialSVG } from '../vial.js';
 import { BATCHES, publishedCount, LAB_GENERIC } from '../lab.js';
 
@@ -56,7 +56,7 @@ const compounds = PRODUCTS.filter((p) => p.category !== 'supplies');
 set('#stat-products', `${compounds.length}`);
 set('#stat-lots', `${BATCHES.length}`);
 set('#stat-certs', `${publishedCount()}`);
-set('#stat-discount', `${Math.round(DISCOUNT * 100)}%`);
+set('#stat-discount', `${DISCOUNT_PCT}%`);
 
 // Lot registry preview.
 const preview = $('#batch-preview');
@@ -89,8 +89,8 @@ const FAQS = [
     'Bitcoin, Solana and Ethereum. Checkout shows the receiving address, a scannable QR code and the amount for the coin you pick. We do not accept cards, PayPal or bank transfer.',
   ],
   [
-    'Are the prices really 15% below list?',
-    'Yes. Every product page shows the list price struck through next to the price you pay, and the difference is applied site-wide with no coupon code.',
+    `Are the prices really ${DISCOUNT_PCT}% below list?`,
+    `Yes. Every product page shows the list price struck through next to the price you pay, and the cut is applied site-wide with no coupon code. It is two reductions stacked: 15% off list, then a further 35% off that.`,
   ],
   [
     'What does the lot number on the vial get me?',

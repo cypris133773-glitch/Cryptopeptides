@@ -1,7 +1,7 @@
 import {
   initShell, PRODUCTS, productCard, addToCart, money, $, $$, esc, DISCOUNT, SITE,
 } from '../app.js';
-import { getProduct } from '../catalog.js';
+import { getProduct, DISCOUNT_PCT } from '../catalog.js';
 import { vialSVG } from '../vial.js';
 import { batchesForSlug, publishedForSlug, LAB_GENERIC, METHODS } from '../lab.js';
 
@@ -31,7 +31,7 @@ function renderPDP(p) {
         <div class="pc-badges">
           ${p.badges.includes('bestseller') ? '<span class="badge best">Popular</span>' : ''}
           ${p.badges.includes('new') ? '<span class="badge new">New</span>' : ''}
-          <span class="badge sale">−${Math.round(DISCOUNT * 100)}%</span>
+          <span class="badge sale">−${DISCOUNT_PCT}%</span>
         </div>
       </div>
       <div class="grid grid-3 pdp-stats">
@@ -276,7 +276,7 @@ if (!product) {
     .querySelector('meta[name="description"]')
     ?.setAttribute(
       'content',
-      `${product.name}: ${product.summary} ${Math.round(DISCOUNT * 100)}% below list price, crypto checkout.`,
+      `${product.name}: ${product.summary} ${DISCOUNT_PCT}% below list price, crypto checkout.`,
     );
   renderPDP(product);
 }

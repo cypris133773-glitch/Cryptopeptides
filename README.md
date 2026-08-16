@@ -54,15 +54,19 @@ through a redirect. Every push to `main` redeploys.
 
 ## Pricing
 
-`catalog.js` holds a `msrp` per variant and one constant:
+`catalog.js` holds a `msrp` per variant and the list of cuts applied to it:
 
 ```js
-export const DISCOUNT = 0.15;
+export const DISCOUNT_STAGES = [0.15, 0.35];   // 15% off list, then 35% off that
+export const DISCOUNT = 0.4475;                 // derived
+export const DISCOUNT_PCT = 44;                 // advertised — floored, never rounded up
 ```
 
-Every displayed price is `msrp × 0.85`, computed in `salePrice()`. The list price is shown struck
-through beside it. Change the constant and the whole store, including the announcement bar and the
-badges, follows — there is no second place where a price is written down.
+Every displayed price is `msrp × 0.5525`, computed once in `salePrice()`, with the list price struck
+through beside it. A further reduction is a line added to `DISCOUNT_STAGES`; the announcement bar,
+the badges, the cart and checkout summaries and the home stat band all follow, and there is no second
+place where a price or a percentage is written down. `DISCOUNT_PCT` floors rather than rounds, so the
+advertised figure can never overstate the cut a buyer actually gets.
 
 ## Payments
 
