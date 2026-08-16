@@ -16,6 +16,25 @@ export const DISCOUNT = 1 - DISCOUNT_STAGES.reduce((factor, cut) => factor * (1 
  *  never be less discounted than the number next to it claims. */
 export const DISCOUNT_PCT = Math.floor(DISCOUNT * 100);
 
+/* Volume offer: one vial free with every five. The free ones are the cheapest
+ * in the basket, which is the reading that never surprises a buyer downwards,
+ * and it is applied on top of the site-wide cut rather than instead of it. */
+export const FREE_VIAL_PER = 5;
+
+/** How many vials come free with `qty` paid-for vials. */
+export const freeVialsFor = (qty) => Math.floor(qty / FREE_VIAL_PER);
+
+/** Vials still to add before the next free one. */
+export const toNextFreeVial = (qty) => (FREE_VIAL_PER - (qty % FREE_VIAL_PER)) % FREE_VIAL_PER || FREE_VIAL_PER;
+
+/* Every order ships with a reconstitution kit at no charge. Described here so
+ * the homepage, the cart and the assistant all quote the same thing. */
+export const FREE_KIT = {
+  label: 'Reconstitution kit',
+  contents: '3 ml bacteriostatic water and a sterile syringe',
+  note: 'Added to every order at no charge.',
+};
+
 export const SITE = {
   name: 'CryptoPeptides',
   short: 'CP',
@@ -116,7 +135,6 @@ export const CATEGORIES = [
   { id: 'vitality', name: 'Aesthetics & Vitality', blurb: 'Melanocortin, skin and vitality research.', accent: '#be185d' },
   { id: 'cognitive', name: 'Cognitive & Neuro', blurb: 'Nootropic and neurotrophic research peptides.', accent: '#6d28d9' },
   { id: 'blends', name: 'Blends & Stacks', blurb: 'Pre-mixed vials and multi-vial research kits.', accent: '#0f766e' },
-  { id: 'supplies', name: 'Lab Supplies', blurb: 'Reconstitution and storage consumables.', accent: '#475569' },
 ];
 
 // v(size, msrp) — a purchasable variant. `id` is derived in `normalise()`.
@@ -235,28 +253,6 @@ const RAW = [
     research: ['Visceral adipose tissue models', 'GHRH receptor affinity', 'IGF-1 axis research'],
     variants: [v('5mg', 69.99), v('10mg', 109.99)],
     rating: 4.8, reviews: 121,
-  },
-  {
-    slug: '5-amino-1mq',
-    name: '5-Amino-1MQ',
-    category: 'glp1',
-    form: 'capsules',
-    purity: '99.0%',
-    summary: 'Small-molecule NNMT inhibitor supplied as 50mg capsules, 60 count.',
-    research: ['NNMT enzyme inhibition', 'Adipocyte NAD+ salvage pathway', 'Metabolic flux studies'],
-    variants: [v('60 x 50mg', 59.99)],
-    rating: 4.5, reviews: 74,
-  },
-  {
-    slug: 'tesofensine',
-    name: 'Tesofensine',
-    category: 'glp1',
-    form: 'capsules',
-    purity: '99.0%',
-    summary: 'Triple monoamine reuptake inhibitor supplied as 500mcg capsules, 60 count.',
-    research: ['Monoamine transporter inhibition', 'Appetite regulation models', 'Reward-pathway research'],
-    variants: [v('60 x 500mcg', 74.99)],
-    rating: 4.4, reviews: 52,
   },
 
   // ── Healing & Recovery ───────────────────────────────────────────────
@@ -449,18 +445,6 @@ const RAW = [
     research: ['Adipose lipolysis assays', 'Non-GH-mediated fat metabolism', 'Comparative fragment studies'],
     variants: [v('5mg', 54.99), v('10mg', 89.99)],
     rating: 4.6, reviews: 129,
-  },
-  {
-    slug: 'mk-677',
-    name: 'MK-677 (Ibutamoren)',
-    category: 'gh',
-    form: 'oral',
-    purity: '99.4%',
-    badges: ['bestseller'],
-    summary: 'Orally active ghrelin mimetic. Available as capsules or as a measured solution.',
-    research: ['Oral GH secretagogue kinetics', 'IGF-1 elevation models', 'Nitrogen balance research'],
-    variants: [v('60 x 25mg caps', 79.99), v('30ml @ 25mg/ml', 69.99)],
-    rating: 4.8, reviews: 264,
   },
   {
     slug: 'igf-1-lr3',
@@ -666,16 +650,6 @@ const RAW = [
     variants: [v('5mg', 44.99), v('10mg', 74.99)],
     rating: 4.5, reviews: 88,
   },
-  {
-    slug: 'cerebrolysin',
-    name: 'Cerebrolysin',
-    category: 'cognitive',
-    purity: '99.0%',
-    summary: 'Neuropeptide preparation supplied as sterile solution ampoules, 5 x 5ml.',
-    research: ['Neurotrophic factor mimicry', 'Post-ischaemic recovery models', 'Neuroplasticity assays'],
-    variants: [v('5 x 5ml', 119.99)],
-    rating: 4.6, reviews: 57,
-  },
 
   // ── Blends & Stacks ──────────────────────────────────────────────────
   {
@@ -743,69 +717,6 @@ const RAW = [
     rating: 4.8, reviews: 141,
   },
 
-  // ── Lab Supplies ─────────────────────────────────────────────────────
-  {
-    slug: 'bacteriostatic-water',
-    name: 'Bacteriostatic Water 30ml',
-    category: 'supplies',
-    spec: '0.9% benzyl alcohol',
-    badges: ['bestseller'],
-    summary: 'Multi-dose sterile diluent for reconstituting lyophilised material.',
-    research: ['Reconstitution diluent', 'Multi-draw compatible', 'Sealed sterile vial'],
-    variants: [v('1 vial', 12.99), v('2 vials', 22.99), v('5 vials', 49.99)],
-    rating: 4.9, reviews: 611,
-  },
-  {
-    slug: 'sterile-water',
-    name: 'Sterile Water 10ml',
-    category: 'supplies',
-    spec: 'USP grade',
-    summary: 'Preservative-free sterile water, five 10ml vials per pack.',
-    research: ['Single-draw diluent', 'Preservative-free', 'USP grade'],
-    variants: [v('5 x 10ml', 14.99)],
-    rating: 4.8, reviews: 203,
-  },
-  {
-    slug: 'insulin-syringes',
-    name: 'Insulin Syringes 31G 1ml',
-    category: 'supplies',
-    spec: 'Sterile, single use',
-    summary: 'Individually wrapped 31-gauge 1ml syringes, 100 per box.',
-    research: ['1ml graduated barrel', '31G x 8mm needle', 'Individually sealed'],
-    variants: [v('100 count', 24.99)],
-    rating: 4.8, reviews: 344,
-  },
-  {
-    slug: 'alcohol-pads',
-    name: 'Alcohol Prep Pads',
-    category: 'supplies',
-    spec: '70% isopropyl',
-    summary: 'Saturated 70% isopropyl pads, 200 per box.',
-    research: ['Vial septum prep', 'Individually sealed', '200 count'],
-    variants: [v('200 count', 9.99)],
-    rating: 4.7, reviews: 158,
-  },
-  {
-    slug: 'vial-case',
-    name: 'Insulated Vial Storage Case',
-    category: 'supplies',
-    spec: 'Holds 20 vials',
-    summary: 'Foam-lined case with a reusable cold pack for transport and cold storage.',
-    research: ['Holds 20 x 2ml vials', 'Reusable cold pack', 'Shock-absorbing foam'],
-    variants: [v('1 case', 19.99)],
-    rating: 4.6, reviews: 92,
-  },
-  {
-    slug: 'starter-kit',
-    name: 'Reconstitution Starter Kit',
-    category: 'supplies',
-    spec: 'Complete kit',
-    badges: ['bestseller'],
-    summary: 'Everything needed to reconstitute and store a vial: 2 x bacteriostatic water, 50 syringes, 100 pads and a storage case.',
-    research: ['2 x 30ml bacteriostatic water', '50 x 31G syringes', '100 alcohol pads + case'],
-    variants: [v('1 kit', 39.99)],
-    rating: 4.9, reviews: 267,
-  },
 ];
 
 const round2 = (n) => Math.round(n * 100) / 100;

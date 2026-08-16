@@ -1119,3 +1119,11 @@ label.lbl { display: block; font-size: var(--fs-sm); font-weight: var(--fw-sub);
 @media (prefers-reduced-motion: reduce) {
   .chat-panel, .chat-launcher { transition: none; }
 }
+
+
+/* Offer cards: the badge sits above the heading rather than floating on it,
+   so the two cards align whatever the copy length. */
+.offer-card { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-2); }
+.offer-card h2 { font-size: var(--fs-lg); margin: 0; }
+.offer-card p { margin: 0; }
+.offer-card .btn { margin-top: auto; }

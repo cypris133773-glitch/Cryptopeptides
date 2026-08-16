@@ -1,6 +1,6 @@
 import {
   initShell, cartTotals, setQty, removeFromCart, getCart, onCartChange, money, $, esc, SITE, PRODUCTS,
-  productCard, DISCOUNT_PCT,
+  productCard, DISCOUNT_PCT, FREE_KIT,
 } from '../app.js';
 import { vialArt } from '../vial.js';
 
@@ -9,7 +9,7 @@ initShell();
 const root = $('#cart-root');
 
 function render() {
-  const { lines, subtotal, saved, shipping, total, count } = cartTotals();
+  const { lines, subtotal, saved, count, freeUnits, freeValue, toNextFree, payable } = cartTotals();
 
   if (!lines.length) {
     root.innerHTML = `<div class="empty" style="margin-top:24px">
@@ -24,15 +24,26 @@ function render() {
     return;
   }
 
-  const toFree = Math.max(0, SITE.freeShippingOver - subtotal);
+  const toFree = Math.max(0, SITE.freeShippingOver - payable);
 
   root.innerHTML = `<div class="checkout-grid" style="margin-top:22px">
     <div>
+      <div class="card" style="padding:14px 18px;margin-bottom:16px">
+        ${
+          freeUnits
+            ? `<div class="small ok-text"><b>✓ ${freeUnits} vial${freeUnits === 1 ? '' : 's'} free</b> — one with every five, applied to the cheapest in your cart</div>`
+            : `<div class="small">Add <b>${toNextFree}</b> more vial${toNextFree === 1 ? '' : 's'} and one is free — one with every five</div>`
+        }
+        <div class="ship-bar"><i style="width:${Math.min(100, ((count % 5) / 5) * 100)}%"></i></div>
+        <div class="tiny muted" style="margin-top:8px">
+          ${esc(FREE_KIT.label)} — ${esc(FREE_KIT.contents)} — is added to every order at no charge.
+        </div>
+      </div>
       ${
         toFree > 0
           ? `<div class="card" style="padding:14px 18px;margin-bottom:16px">
                <div class="small">Add <b>${money(toFree)}</b> more for free tracked shipping to most destinations</div>
-               <div class="ship-bar"><i style="width:${Math.min(100, (subtotal / SITE.freeShippingOver) * 100)}%"></i></div>
+               <div class="ship-bar"><i style="width:${Math.min(100, (payable / SITE.freeShippingOver) * 100)}%"></i></div>
              </div>`
           : `<div class="card ok-text" style="padding:14px 18px;margin-bottom:16px">
                <b class="small">✓ Free tracked shipping to most destinations</b>
@@ -66,8 +77,9 @@ function render() {
       <h2>Order summary</h2>
       <div class="summary-row"><span>Items (${count}) at list price</span><span>${money(subtotal + saved)}</span></div>
       <div class="summary-row ok-text"><span>Site-wide ${DISCOUNT_PCT}% discount</span><span>−${money(saved)}</span></div>
+      ${freeUnits ? `<div class="summary-row ok-text"><span>Free vials (${freeUnits})</span><span>−${money(freeValue)}</span></div>` : ''}
       <div class="summary-row"><span>Shipping</span><span>calculated at checkout</span></div>
-      <div class="summary-row total"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+      <div class="summary-row total"><span>Subtotal</span><span>${money(payable)}</span></div>
       <a class="btn btn-primary btn-block btn-lg" style="margin-top:14px" href="checkout.html">Checkout with crypto</a>
       <div class="pay-chips" style="margin-top:12px;justify-content:center"><span>BTC</span><span>SOL</span><span>ETH</span></div>
       <p class="tiny muted center" style="margin:12px 0 0">

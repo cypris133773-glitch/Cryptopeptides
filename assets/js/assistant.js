@@ -13,7 +13,10 @@
 // would contradict that on every other page — and be medical advice about
 // unapproved substances besides. That request gets a straight answer about why
 // not, and a route to a human.
-import { SITE, SHIPPING, CRYPTO, PRODUCTS, DISCOUNT_PCT, money } from './catalog.js';
+import {
+  SITE, SHIPPING, CRYPTO, PRODUCTS, DISCOUNT_PCT, money, shippingZone,
+  FREE_VIAL_PER, FREE_KIT,
+} from './catalog.js';
 import { BATCHES, publishedCount, LAB_GENERIC, METHODS } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
 
@@ -27,6 +30,35 @@ const link = (href, text) => `<a href="${href}">${esc(text)}</a>`;
 /* ── Answers ─────────────────────────────────────────────────────────────
    Each intent scores the incoming text on its keywords; the best score wins.
    `answer` returns HTML, composed from live data rather than written prose. */
+
+/* What the assistant is holding in mind. A follow-up like "and to Germany?"
+   or "how much is the 10mg" only makes sense against the turn before it, so
+   the last intent, product and country are carried forward. */
+const memory = { intent: null, product: null, country: null, offered: null };
+
+const COUNTRY_WORDS = {
+  ...Object.fromEntries(Object.keys(SHIPPING.countries).map((c) => [c.toLowerCase(), c])),
+  usa: 'United States', us: 'United States', america: 'United States', states: 'United States',
+  uk: 'United Kingdom', britain: 'United Kingdom', england: 'United Kingdom',
+  deutschland: 'Germany', germany: 'Germany', österreich: 'Other', schweiz: 'Other',
+  holland: 'Netherlands', nederland: 'Netherlands', aussie: 'Australia', oz: 'Australia',
+  canada: 'Canada', nz: 'New Zealand', europe: 'Germany', eu: 'Germany',
+};
+
+function findCountry(text) {
+  const q = ' ' + text.toLowerCase() + ' ';
+  let hit = null;
+  for (const [word, country] of Object.entries(COUNTRY_WORDS))
+    if (q.includes(' ' + word) && (!hit || word.length > hit.len)) hit = { country, len: word.length };
+  return hit?.country || null;
+}
+
+/** A size named on its own ("10mg", "the 5mg one") resolves against the last product. */
+function findSize(product, text) {
+  if (!product) return null;
+  const q = text.toLowerCase().replace(/\s+/g, '');
+  return product.variants.find((v) => q.includes(v.size.toLowerCase().replace(/\s+/g, ''))) || null;
+}
 
 const INTENTS = [
   {
@@ -44,7 +76,8 @@ const INTENTS = [
   },
   {
     id: 'prices',
-    keywords: ['price', 'cost', 'discount', 'cheap', 'expensive', 'deal', 'offer', 'coupon', 'code', 'sale', 'preis', 'rabatt'],
+    keywords: ['price', 'cost', 'how much', 'what does it', 'discount', 'cheap', 'expensive', 'deal',
+      'coupon', 'code', 'sale', 'preis', 'rabatt', 'kostet'],
     answer: () => {
       const cheapest = [...PRODUCTS].sort((a, b) => a.minPrice - b.minPrice)[0];
       return `Every product sits <b>${DISCOUNT_PCT}% below its list price</b>, permanently — the list price is
@@ -54,10 +87,32 @@ const INTENTS = [
     },
   },
   {
+    id: 'offer',
+    weight: 2,
+    keywords: ['free', 'gratis', 'kit', 'bac water', 'bacteriostatic', 'syringe', 'bundle', 'bulk', 'volume',
+      'more i buy', 'buy 5', 'buy 10', 'umsonst', 'kostenlos', 'mengenrabatt'],
+    answer: () => `Two things come free with an order:
+      <ul class="chat-list">
+        <li><b>${esc(FREE_KIT.label)}</b> — ${esc(FREE_KIT.contents)}, in every box, at no charge and with
+        nothing to add to the cart.</li>
+        <li><b>One vial free with every ${FREE_VIAL_PER}</b> — buy 5 get 1 free, buy 10 get 2. The free ones
+        are the cheapest in your basket.</li>
+      </ul>
+      It stacks on the ${DISCOUNT_PCT}% that is already in every price, and the cart shows the deduction before
+      you pay.`,
+  },
+  {
     id: 'shipping',
     keywords: ['ship', 'shipping', 'delivery', 'deliver', 'arrive', 'tracking', 'courier', 'post', 'customs',
       'how long', 'when will', 'discreet', 'lost', 'seized', 'versand', 'lieferung'],
-    answer: () => {
+    answer: (ctx) => {
+      if (ctx?.country) {
+        const z = shippingZone(ctx.country);
+        return `To <b>${esc(ctx.country)}</b>: ${money(z.rate)} tracked${z.freeOver ? `, free over ${money(z.freeOver)}` : ''},
+          typically ${esc(z.transit)} once dispatched.
+          <br /><br />Plain packaging, no product names outside, insulated mailer with a gel pack.
+          ${link('shipping.html', 'Full shipping terms')}.`;
+      }
       const rows = SHIPPING.zones
         .map((z) => `<li>${esc(z.label)} — ${z.rate ? money(z.rate) : 'free'}${z.freeOver ? `, free over ${money(z.freeOver)}` : ''} · ${esc(z.transit)}</li>`)
         .join('');
@@ -152,17 +207,48 @@ function findProduct(text) {
   return best?.p || null;
 }
 
-function productAnswer(p) {
-  const sizes = p.variants.map((v) => `${esc(v.size)} — ${money(v.price)} <s>${money(v.msrp)}</s>`).join('<br />');
+function productAnswer(p, variant) {
   const lots = BATCHES.filter((b) => b.slug === p.slug);
+  const href = link(`product.html?p=${encodeURIComponent(p.slug)}`, 'Open the product page');
+  if (variant) {
+    return `<b>${esc(p.name)} ${esc(variant.size)}</b> — ${money(variant.price)}
+      <s>${money(variant.msrp)}</s>, ${DISCOUNT_PCT}% off list.
+      <br /><br />Buy five vials and one is free.<br />${href}`;
+  }
+  const sizes = p.variants.map((v) => `${esc(v.size)} — ${money(v.price)} <s>${money(v.msrp)}</s>`).join('<br />');
   return `<b>${esc(p.name)}</b> — ${esc(p.summary)}
     <br /><br />${sizes}
     <br /><br />${p.purity ? `Target purity ${esc(p.purity)}. ` : ''}${lots.length ? `${lots.length} lot${lots.length === 1 ? '' : 's'} on file.` : ''}
-    <br />${link(`product.html?p=${encodeURIComponent(p.slug)}`, 'Open the product page')}`;
+    <br />${href}`;
 }
+
+/** Follow-ups offered after an answer, so the next turn can be one tap. */
+function suggestions() {
+  switch (memory.intent) {
+    case 'product': return ['Lot registry', 'Free kit', 'Shipping'];
+    case 'shipping': return ['To Germany?', 'To the US?', 'Is it discreet?'];
+    case 'payment': return ['Wrong amount?', 'Refunds', 'Prices'];
+    case 'lab': return ['What is tested?', 'Purity', 'Lot registry'];
+    case 'offer': return ['Prices', 'Shipping', 'Payment'];
+    case 'dosage': return ['Storage', 'Purity', 'Contact a human'];
+    default: return ['Shipping', 'Payment', 'Free kit', 'Prices'];
+  }
+}
+
+/** True for a message that only makes sense as a follow-up. */
+const isFollowUp = (t) =>
+  /^(and |what about|how about|und |wie )/i.test(t.trim()) ||
+  /^(yes|yeah|yep|no|nope|ok|okay|thanks|danke|ja|nein)\b/i.test(t.trim()) ||
+  t.trim().split(/\s+/).length <= 3;
 
 function reply(text) {
   const q = ' ' + text.toLowerCase() + ' ';
+
+  if (/^(thanks|thank you|danke|cheers|ty)\b/i.test(text.trim()))
+    return `Any time. Anything else — shipping, payment, a compound, an order?`;
+  if (/^(bye|goodbye|tschüss|ciao)\b/i.test(text.trim()))
+    return `Take care. ${link(mailto('Question from the site'), SITE.email)} if something comes up later.`;
+
   let best = { score: 0, intent: null };
   for (const intent of INTENTS) {
     let score = 0;
@@ -170,19 +256,43 @@ function reply(text) {
     if (score > best.score) best = { score, intent };
   }
 
-  // A named product wins unless the question was about dosing.
-  const product = findProduct(text);
-  if (product && best.intent?.id !== 'dosage') return productAnswer(product);
-  if (best.intent) return best.intent.answer();
+  const country = findCountry(text);
+  if (country) memory.country = country;
 
-  return `I didn't catch that one. I can help with <b>prices</b>, <b>shipping</b>, <b>payment</b>,
-    <b>lab reports</b>, <b>storage</b> and <b>order status</b>, or price any compound if you name it.
+  const named = findProduct(text);
+  if (named) memory.product = named;
+
+  // "and to Germany?" / "how much is the 10mg" carry the previous turn.
+  const followUp = isFollowUp(text) && !best.intent && !named;
+  if (followUp && country) best = { score: 1, intent: INTENTS.find((i) => i.id === 'shipping') };
+  if (followUp && !country && memory.intent)
+    best = { score: 1, intent: INTENTS.find((i) => i.id === memory.intent) };
+
+  // "how much is the 10mg" names no product, but the size resolves against the
+  // one already under discussion.
+  const sizeOnly = !named && findSize(memory.product, text);
+  const product = named || (sizeOnly || followUp || best.intent?.id === 'prices' ? memory.product : null);
+  const variant = findSize(product, text);
+
+  if (product && best.intent?.id !== 'dosage' && (named || variant || followUp)) {
+    memory.intent = 'product';
+    return productAnswer(product, variant);
+  }
+
+  if (best.intent) {
+    memory.intent = best.intent.id;
+    return best.intent.answer({ country: country || (best.intent.id === 'shipping' ? memory.country : null) });
+  }
+
+  return `I didn't catch that one. I can help with <b>prices</b>, <b>shipping</b>, <b>payment</b>, the
+    <b>free kit and volume offer</b>, <b>lab reports</b>, <b>storage</b> and <b>order status</b>, or price any
+    compound if you name it.
     <br /><br />For anything else: ${link(mailto('Question from the site'), SITE.email)}.`;
 }
 
 /* ── Widget ──────────────────────────────────────────────────────────── */
 
-const CHIPS = ['Shipping', 'Payment', 'Prices', 'Lab reports', 'Storage', 'Order status'];
+const OPENING_CHIPS = ['Shipping', 'Payment', 'Free kit', 'Prices', 'Lab reports', 'Order status'];
 
 export function initAssistant() {
   const launcher = document.createElement('button');
@@ -211,7 +321,7 @@ export function initAssistant() {
     </header>
     <div class="chat-log" id="chat-log" role="log" aria-live="polite"></div>
     <div class="chat-chips" id="chat-chips">
-      ${CHIPS.map((c) => `<button type="button" class="chat-chip">${esc(c)}</button>`).join('')}
+      ${OPENING_CHIPS.map((c) => `<button type="button" class="chat-chip">${esc(c)}</button>`).join('')}
     </div>
     <form class="chat-form" id="chat-form">
       <label class="visually-hidden" for="chat-input">Your question</label>
@@ -246,7 +356,12 @@ export function initAssistant() {
     push('you', esc(text));
     // A beat before answering, so the reply reads as a response rather than
     // appearing in the same frame as the question.
-    setTimeout(() => push('bot', reply(text)), 260);
+    setTimeout(() => {
+      push('bot', reply(text));
+      // Offer what usually comes next, given what was just discussed.
+      const chips = panel.querySelector('#chat-chips');
+      chips.innerHTML = suggestions().map((c) => `<button type="button" class="chat-chip">${esc(c)}</button>`).join('');
+    }, 260);
   };
 
   panel.querySelector('#chat-form').addEventListener('submit', (e) => {

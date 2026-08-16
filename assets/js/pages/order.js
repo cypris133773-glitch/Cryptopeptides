@@ -80,6 +80,8 @@ if (!order) {
         </div>`,
       )
       .join('')}
+    ${order.freeVials ? `<div class="summary-row ok-text"><span>Free vials (${order.freeVials})</span><span>−${money(order.freeValue || 0)}</span></div>` : ''}
+    ${order.kit ? `<div class="summary-row ok-text"><span>Reconstitution kit</span><span>${esc(order.kit)}</span></div>` : ''}
     <div class="summary-row total"><span>Order total</span><span>${money(order.usd)}</span></div>
   </div>
 

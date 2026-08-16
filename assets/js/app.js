@@ -1,12 +1,18 @@
 // Shared shell: header, footer, cart state, drawer, toasts, theme, age gate.
-import { SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone } from './catalog.js';
+import {
+  SITE, SHIPPING, CATEGORIES, PRODUCTS, getVariant, money, DISCOUNT, DISCOUNT_PCT,
+  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT,
+} from './catalog.js';
 import { vialArt } from './vial.js';
 import { publishedCount } from './lab.js';
 import { safeStorage, readJSON, writeJSON } from './storage.js';
 import { initActivity } from './activity.js';
 import { initAssistant } from './assistant.js';
 
-export { money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT, shippingCost, shippingZone };
+export {
+  money, SITE, SHIPPING, CATEGORIES, PRODUCTS, DISCOUNT, DISCOUNT_PCT,
+  shippingCost, shippingZone, FREE_VIAL_PER, freeVialsFor, toNextFreeVial, FREE_KIT,
+};
 
 const CART_KEY = 'cp_cart_v1';
 const THEME_KEY = 'cp_theme';
@@ -61,17 +67,30 @@ export function cartLines() {
 /** @param {string} [country] destination, for the shipping line. */
 export function cartTotals(country = SHIPPING.defaultCountry) {
   const lines = cartLines();
-  const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
+  const gross = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const msrp = lines.reduce((sum, l) => sum + l.variant.msrp * l.qty, 0);
-  const shipping = lines.length === 0 ? 0 : shippingCost(country, subtotal);
+  const count = lines.reduce((sum, l) => sum + l.qty, 0);
+
+  // The free vials are the cheapest units in the basket: expand every line to
+  // one entry per vial, take the cheapest N off the bill.
+  const freeUnits = freeVialsFor(count);
+  const units = lines.flatMap((l) => Array.from({ length: l.qty }, () => l.variant.price)).sort((a, b) => a - b);
+  const freeValue = units.slice(0, freeUnits).reduce((sum, price) => sum + price, 0);
+
+  const payable = gross - freeValue;
+  const shipping = lines.length === 0 ? 0 : shippingCost(country, payable);
   return {
     lines,
-    count: lines.reduce((sum, l) => sum + l.qty, 0),
-    subtotal,
+    count,
+    subtotal: gross,
     msrp,
-    saved: msrp - subtotal,
+    saved: msrp - gross,
+    freeUnits,
+    freeValue,
+    toNextFree: count ? toNextFreeVial(count) : FREE_VIAL_PER,
+    payable,
     shipping,
-    total: subtotal + shipping,
+    total: payable + shipping,
   };
 }
 
@@ -367,7 +386,7 @@ function renderDrawer() {
   const body = $('#drawer-body');
   const foot = $('#drawer-foot');
   if (!body || !foot) return;
-  const { lines, count, subtotal, saved } = cartTotals();
+  const { lines, count, subtotal, saved, freeUnits, freeValue, toNextFree, payable } = cartTotals();
   $('#drawer-count').textContent = count ? `(${count})` : '';
 
   if (!lines.length) {
@@ -399,15 +418,22 @@ function renderDrawer() {
     )
     .join('');
 
-  const toFree = Math.max(0, SITE.freeShippingOver - subtotal);
+  const toFree = Math.max(0, SITE.freeShippingOver - payable);
   foot.innerHTML = `
+    <div class="small ok-text"><b>✓ ${esc(FREE_KIT.label)} included</b> — ${esc(FREE_KIT.contents)}</div>
+    ${
+      freeUnits
+        ? `<div class="small ok-text"><b>✓ ${freeUnits} vial${freeUnits === 1 ? '' : 's'} free</b> with ${count} in the cart</div>`
+        : `<div class="small muted">Add <b>${toNextFree}</b> more vial${toNextFree === 1 ? '' : 's'} for one free</div>`
+    }
     ${
       toFree > 0
         ? `<div class="small muted">Add <b>${money(toFree)}</b> for free shipping to most destinations</div>
-           <div class="ship-bar"><i style="width:${Math.min(100, (subtotal / SITE.freeShippingOver) * 100)}%"></i></div>`
+           <div class="ship-bar"><i style="width:${Math.min(100, (payable / SITE.freeShippingOver) * 100)}%"></i></div>`
         : `<div class="small ok-text"><b>✓ Free tracked shipping unlocked</b></div>`
     }
     <div class="summary-row"><span>Subtotal</span><b>${money(subtotal)}</b></div>
+    ${freeUnits ? `<div class="summary-row small ok-text"><span>Free vials (${freeUnits})</span><b>−${money(freeValue)}</b></div>` : ''}
     <div class="summary-row small ok-text"><span>Below list price by</span><b>${money(saved)}</b></div>
     <div class="summary-row small muted"><span>Shipping</span><span>calculated at checkout</span></div>
     <a class="btn btn-primary btn-block btn-lg" style="margin-top:10px" href="checkout.html">Checkout with crypto</a>

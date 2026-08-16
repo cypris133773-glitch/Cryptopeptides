@@ -2,7 +2,7 @@ import {
   initShell, cartTotals, clearCart, money, $, $$, esc, toast, SITE, SHIPPING, shippingZone,
   saveOrder, onCartChange,
 } from '../app.js';
-import { CRYPTO, DISCOUNT_PCT } from '../catalog.js';
+import { CRYPTO, DISCOUNT_PCT, FREE_KIT } from '../catalog.js';
 import { vialArt } from '../vial.js';
 import { safeSession, readJSON, writeJSON } from '../storage.js';
 
@@ -63,7 +63,7 @@ function stepBadges() {
 }
 
 function summaryHTML() {
-  const { lines, subtotal, saved, shipping, total, count } = cartTotals(country());
+  const { lines, subtotal, saved, shipping, total, count, freeUnits, freeValue } = cartTotals(country());
   const zone = shippingZone(country());
   return `<aside class="card sticky-summary" aria-label="Order summary">
     <h2>Order summary</h2>
@@ -78,6 +78,8 @@ function summaryHTML() {
       .join('')}
     <div class="summary-row" style="margin-top:8px"><span>Items (${count})</span><span>${money(subtotal + saved)}</span></div>
     <div class="summary-row ok-text"><span>Site-wide ${DISCOUNT_PCT}% discount</span><span>−${money(saved)}</span></div>
+    ${freeUnits ? `<div class="summary-row ok-text"><span>Free vials (${freeUnits})</span><span>−${money(freeValue)}</span></div>` : ''}
+    <div class="summary-row ok-text"><span>${esc(FREE_KIT.label)}</span><span>included</span></div>
     <div class="summary-row"><span>Shipping — ${esc(zone.label)}</span><span>${shipping ? money(shipping) : 'Free'}</span></div>
     <div class="summary-row total"><span>Total</span><span>${money(total)}</span></div>
     <p class="tiny muted" style="margin-top:10px">
@@ -295,7 +297,7 @@ function paymentURI(coin, amount) {
 }
 
 function renderPay() {
-  const { total, lines } = cartTotals(country());
+  const { total, lines, freeUnits, freeValue } = cartTotals(country());
   const coin = CRYPTO.find((c) => c.id === state.coin);
   const amount = coinAmount(total, coin.id);
   const uri = paymentURI(coin, amount);
@@ -430,6 +432,9 @@ function renderPay() {
       rate: state.rates[coin.id],
       rateLive: state.live,
       usd: total,
+      freeVials: freeUnits,
+      freeValue,
+      kit: FREE_KIT.contents,
       ship: state.ship,
       items: lines.map((l) => ({
         name: l.product.name,
