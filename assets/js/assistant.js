@@ -102,6 +102,16 @@ const INTENTS = [
       you pay.`,
   },
   {
+    id: 'supplies',
+    weight: 2,
+    keywords: ['needle', 'needles', 'syringe', 'syringes', 'insulin pin', 'alcohol pad', 'swab',
+      'water', 'bac ', 'bacteriostatic', 'diluent', 'nadel', 'spritze'],
+    answer: () => `We don't sell consumables separately any more — they come with the order instead.
+      Every order includes a <b>${esc(FREE_KIT.label.toLowerCase())}</b>: ${esc(FREE_KIT.contents)}, at no charge.
+      <br /><br />If you need more than that, any pharmacy or lab supplier stocks both. What we sell is the
+      compounds themselves, all lyophilised in sealed vials.`,
+  },
+  {
     id: 'shipping',
     keywords: ['ship', 'shipping', 'delivery', 'deliver', 'arrive', 'tracking', 'courier', 'post', 'customs',
       'how long', 'when will', 'discreet', 'lost', 'seized', 'versand', 'lieferung'],
@@ -171,7 +181,8 @@ const INTENTS = [
   },
   {
     id: 'legal',
-    keywords: ['legal', 'research use', 'human', 'consumption', 'safe', 'fda', 'approved', 'prescription', 'rezept'],
+    keywords: ['legal', 'research use', 'human consumption', 'for human use', 'consumption', 'safe',
+      'fda', 'approved', 'prescription', 'rezept'],
     answer: () => `Everything here is supplied for laboratory research only. It is not a medicine, it is not
       approved by any regulatory authority, and it is not for human or veterinary consumption. We don't sell to
       anyone who tells us the material is for personal use.
@@ -180,10 +191,12 @@ const INTENTS = [
   },
   {
     id: 'human',
-    keywords: ['human', 'person', 'agent', 'speak to', 'talk to someone', 'email', 'contact', 'support', 'kontakt'],
-    answer: () => `I'm an automated assistant, so for anything I've missed a person will do better:
-      ${link(mailto('Question from the site'), SITE.email)} — usually answered the same working day.
-      ${link('contact.html', 'Contact page')}.`,
+    weight: 2,
+    keywords: ['talk to a human', 'real person', 'person', 'agent', 'speak to', 'talk to someone',
+      'email', 'mail', 'contact', 'support', 'kontakt', 'reach you', 'get in touch', 'mensch'],
+    answer: () => `I'm an automated assistant, so for anything I've missed a person will do better.
+      Write to <b>${esc(SITE.email)}</b> — ${link(mailto('Question from the site'), 'open it in your mail app')} —
+      usually answered the same working day. ${link('contact.html', 'Contact page')}.`,
   },
   {
     id: 'greeting',
@@ -287,7 +300,8 @@ function reply(text) {
   return `I didn't catch that one. I can help with <b>prices</b>, <b>shipping</b>, <b>payment</b>, the
     <b>free kit and volume offer</b>, <b>lab reports</b>, <b>storage</b> and <b>order status</b>, or price any
     compound if you name it.
-    <br /><br />For anything else: ${link(mailto('Question from the site'), SITE.email)}.`;
+    <br /><br />For anything else, a person will answer at <b>${esc(SITE.email)}</b>
+    (${link(mailto('Question from the site'), 'open in your mail app')}).`;
 }
 
 /* ── Widget ──────────────────────────────────────────────────────────── */
@@ -350,7 +364,8 @@ export function initAssistant() {
   else
     push('bot', `Hello — I'm the automated assistant. Ask about prices, shipping, payment, lab reports,
       storage or an order, or name a compound and I'll price it.<br /><br />I can't advise on dosing or
-      administration: everything here is sold for laboratory research only.`);
+      administration — everything here is sold for laboratory research only. For anything I can't answer,
+      a person reads <b>${esc(SITE.email)}</b>.`);
 
   const ask = (text) => {
     push('you', esc(text));

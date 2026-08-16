@@ -39,7 +39,7 @@ export const SITE = {
   name: 'CryptoPeptides',
   short: 'CP',
   tagline: 'Research-grade peptides, third-party tested, crypto-only checkout.',
-  email: 'support@cryptopeptides.com',
+  email: 'Cryptopeptides@proton.me',
   freeShippingOver: 150,
   currency: 'USD',
   // Everything below is a tunable the UI reads — no magic numbers in page code.
